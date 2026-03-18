@@ -10,6 +10,14 @@ const PROVIDER_DESCRIPTIONS: Record<string, string> = {
   lmstudio: 'Your local LM Studio endpoint',
 };
 
+const PROVIDER_DASHBOARD_LINKS: Record<string, string> = {
+  gemini: 'https://aistudio.google.com/',
+  groq: 'https://console.groq.com/keys',
+  mistral: 'https://console.mistral.ai/',
+  openrouter: 'https://openrouter.ai/keys',
+  lmstudio: 'http://localhost:1234/',
+};
+
 export function SettingsPage() {
   const { settings, models, loading, error, reload, saveSettings, removeKey } = useSettings();
   const [draftKeys, setDraftKeys] = useState<Record<string, string>>({});
@@ -70,6 +78,15 @@ export function SettingsPage() {
                   </div>
                   <span className={configured ? styles.on : styles.off}>{configured ? 'Ready' : 'Missing key'}</span>
                 </div>
+
+                <a
+                  href={PROVIDER_DASHBOARD_LINKS[provider]}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.dashboardLink}
+                >
+                  Open Dashboard ↗
+                </a>
 
                 {provider === 'lmstudio' ? (
                   <>

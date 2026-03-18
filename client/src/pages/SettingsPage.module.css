@@ -90,6 +90,28 @@
   gap: 10px;
 }
 
+.dashboardLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--border-active);
+  background: var(--accent-subtle);
+  border-radius: 100px;
+  padding: 5px 10px;
+  transition: all var(--transition);
+}
+
+.dashboardLink:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
 .models {
   display: flex;
   gap: 8px;
