@@ -20,3 +20,60 @@
   color: #f0a3a3;
   border-radius: var(--radius-md);
 }
+
+.toolsBar {
+  margin: 10px 16px 0;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.toolGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolLabel {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-width: 94px;
+}
+
+.select,
+.rewriteSelect {
+  min-height: 38px;
+}
+
+.select {
+  min-width: 160px;
+}
+
+.rewriteSelect {
+  min-width: 260px;
+}
+
+@media (max-width: 767px) {
+  .toolsBar {
+    margin: 8px 10px 0;
+  }
+
+  .toolGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolLabel,
+  .select,
+  .rewriteSelect {
+    min-width: 0;
+    width: 100%;
+  }
+}

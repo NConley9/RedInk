@@ -77,13 +77,23 @@ chatsRouter.post('/', async (req: AuthRequest, res: Response) => {
   res.status(201).json(data);
 });
 
-// PATCH /api/chats/:id — update title
+// PATCH /api/chats/:id — update mutable chat fields
 chatsRouter.patch('/:id', async (req: AuthRequest, res: Response) => {
-  const { title } = req.body;
+  const { title, model_provider, model_name } = req.body;
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (typeof title === 'string' && title.trim()) updates.title = title;
+  if (typeof model_provider === 'string' && model_provider.trim()) updates.model_provider = model_provider;
+  if (typeof model_name === 'string' && model_name.trim()) updates.model_name = model_name;
+
+  if (Object.keys(updates).length === 1) {
+    res.status(400).json({ error: 'No valid fields to update' });
+    return;
+  }
 
   const { data, error } = await supabaseAdmin
     .from('chats')
-    .update({ title, updated_at: new Date().toISOString() })
+    .update(updates)
     .eq('id', req.params.id)
     .eq('user_id', req.userId!)
     .select()

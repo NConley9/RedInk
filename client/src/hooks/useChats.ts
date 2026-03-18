@@ -125,5 +125,72 @@ export function useChatSession(chatId: string | null) {
     );
   };
 
-  return { chat, messages, streaming, streamBuffer, error, loadChat, sendMessage };
+  const updateChatModel = async (provider: string, model: string) => {
+    if (!chat) return;
+    const updated = await apiFetch<Chat>(`/api/chats/${chat.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ model_provider: provider, model_name: model }),
+    });
+    setChat((prev) => (prev ? { ...prev, model_provider: updated.model_provider, model_name: updated.model_name } : prev));
+  };
+
+  const rewriteLastPrompt = async (
+    provider: string,
+    model: string,
+    personaCharacter: import('../types/index.js').Character | null,
+    loveInterestCharacter: import('../types/index.js').Character | null,
+    scenario: import('../types/index.js').Scenario | null,
+  ) => {
+    if (!chat || streaming) return;
+
+    const lastUserIndex = [...messages].reverse().findIndex((m) => m.role === 'user');
+    if (lastUserIndex === -1) {
+      setError('No user prompt found to rewrite.');
+      return;
+    }
+
+    const absoluteIndex = messages.length - 1 - lastUserIndex;
+    const history = messages
+      .slice(0, absoluteIndex + 1)
+      .filter((m) => m.role !== 'system')
+      .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content }));
+
+    setError(null);
+    setStreaming(true);
+    setStreamBuffer('');
+    let accumulated = '';
+
+    await apiStream(
+      '/api/ai/chat',
+      {
+        provider,
+        model,
+        messages: history,
+        mode: chat.mode,
+        personaContent: personaCharacter?.content_md || null,
+        loveInterestContent: loveInterestCharacter?.content_md || null,
+        scenarioContent: scenario?.content_md || null,
+      },
+      (token) => {
+        accumulated += token;
+        setStreamBuffer(accumulated);
+      },
+      async () => {
+        setStreaming(false);
+        setStreamBuffer('');
+        const assistantMsg = await apiFetch<Message>(`/api/chats/${chat.id}/messages`, {
+          method: 'POST',
+          body: JSON.stringify({ role: 'assistant', content: accumulated }),
+        });
+        setMessages((prev) => [...prev, assistantMsg]);
+      },
+      (msg) => {
+        setStreaming(false);
+        setStreamBuffer('');
+        setError(msg);
+      },
+    );
+  };
+
+  return { chat, messages, streaming, streamBuffer, error, loadChat, sendMessage, updateChatModel, rewriteLastPrompt };
 }
