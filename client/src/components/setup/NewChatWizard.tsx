@@ -56,6 +56,15 @@ export function NewChatWizard({ onClose }: Props) {
     600
   ) / 4);
 
+  const sortByRecommendation = <T extends { recommended_modes?: Mode[] }>(list: T[]) => {
+    if (!config.mode) return list;
+    return [...list].sort((a, b) => {
+      const aRec = (a.recommended_modes || []).includes(config.mode as Mode) ? 1 : 0;
+      const bRec = (b.recommended_modes || []).includes(config.mode as Mode) ? 1 : 0;
+      return bRec - aRec;
+    });
+  };
+
   const goBack = () => {
     if (stepIndex > 0) setStep(steps[stepIndex - 1]);
   };
@@ -242,6 +251,12 @@ export function NewChatWizard({ onClose }: Props) {
                 ? 'No API keys configured. Add them in Settings first.'
                 : 'Select the AI model for this chat'}
             </p>
+            {config.mode && (
+              <div className={styles.modeRecommendationHint}>
+                <span className={styles.recommendedBadge}>Recommended</span>
+                <span>Suggestions are tuned for {config.mode.replace('_', ' ')} mode and shown first.</span>
+              </div>
+            )}
 
             {availableProviders.length === 0 ? (
               <div className={styles.noProviders}>
@@ -255,7 +270,7 @@ export function NewChatWizard({ onClose }: Props) {
                   <div key={provider} className={styles.providerGroup}>
                     <div className={styles.providerLabel}>{PROVIDER_LABELS[provider] || provider}</div>
                     <div className={styles.modelGrid}>
-                      {(models[provider] || []).map((m) => {
+                      {sortByRecommendation(models[provider] || []).map((m) => {
                         const recommended = !!config.mode && (m.recommended_modes || []).includes(config.mode);
                         const nearLimit = !!m.input_token_soft_limit && estimatedInitialPromptTokens > Math.floor(m.input_token_soft_limit * 0.85);
                         return (

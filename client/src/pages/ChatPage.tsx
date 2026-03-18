@@ -98,21 +98,45 @@ export function ChatPage() {
   }, [models, settings?.api_keys_configured]);
 
   const providerModels = useMemo(
-    () => (activeProvider ? models[activeProvider] || [] : []),
-    [models, activeProvider],
+    () => {
+      if (!activeProvider) return [];
+      const list = models[activeProvider] || [];
+      if (!chat) return list;
+      return [...list].sort((a, b) => {
+        const aRec = (a.recommended_modes || []).includes(chat.mode) ? 1 : 0;
+        const bRec = (b.recommended_modes || []).includes(chat.mode) ? 1 : 0;
+        return bRec - aRec;
+      });
+    },
+    [models, activeProvider, chat],
   );
 
   const rewriteOptions = useMemo(
     () =>
       availableProviders.flatMap((provider) =>
-        (models[provider] || []).map((model) => ({
+        [...(models[provider] || [])]
+          .sort((a, b) => {
+            if (!chat) return 0;
+            const aRec = (a.recommended_modes || []).includes(chat.mode) ? 1 : 0;
+            const bRec = (b.recommended_modes || []).includes(chat.mode) ? 1 : 0;
+            return bRec - aRec;
+          })
+          .map((model) => ({
           value: `${provider}::${model.id}`,
           label: `${provider} / ${model.label}${chat && (model.recommended_modes || []).includes(chat.mode) ? ' • Recommended' : ''}`,
           provider,
           model,
-        })),
+          })),
       ),
     [availableProviders, models, chat],
+  );
+
+  const activeProviderRecommendations = useMemo(
+    () => {
+      if (!chat || !activeProvider) return [];
+      return (models[activeProvider] || []).filter((m) => (m.recommended_modes || []).includes(chat.mode));
+    },
+    [chat, activeProvider, models],
   );
 
   const estimatedPromptTokens = useMemo(() => {
@@ -238,6 +262,23 @@ export function ChatPage() {
                   {updatingModel ? 'Applying…' : 'Apply'}
                 </button>
               </div>
+              {chat && activeProviderRecommendations.length > 0 && (
+                <div className={styles.recommendationRow}>
+                  <span className={styles.recommendationLabel}>Recommended for {chat.mode.replace('_', ' ')}:</span>
+                  <div className={styles.recommendationChips}>
+                    {activeProviderRecommendations.map((model) => (
+                      <button
+                        key={model.id}
+                        className={styles.recommendationChip}
+                        onClick={() => setActiveModel(model.id)}
+                        type="button"
+                      >
+                        {model.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {chat && activeModelMeta && (activeModelMeta.recommended_modes || []).includes(chat.mode) && (
                 <p className={styles.infoText}>Recommended for {chat.mode.replace('_', ' ')}. {activeModelMeta.notes || ''}</p>
               )}
