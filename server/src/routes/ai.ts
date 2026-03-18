@@ -4,14 +4,25 @@ import { getProvider, PROVIDER_MODELS } from '../providers/index.js';
 import { supabaseAdmin } from '../lib/supabase-admin.js';
 import type { Response } from 'express';
 import { buildServerSystemPrompt } from '../prompt/system-prompt.js';
+import { discoverModelsFromApiKeys, mergeDiscoveredModels } from '../providers/discovery.js';
 
 export const aiRouter = Router();
 
 aiRouter.use(requireAuth);
 
 // GET /api/ai/models — return provider/model registry
-aiRouter.get('/models', (_req, res) => {
-  res.json(PROVIDER_MODELS);
+aiRouter.get('/models', async (req: AuthRequest, res: Response) => {
+  const { data: settings } = await supabaseAdmin
+    .from('user_settings')
+    .select('api_keys')
+    .eq('user_id', req.userId!)
+    .single();
+
+  const apiKeys = (settings?.api_keys as Record<string, string>) || {};
+  const discovered = await discoverModelsFromApiKeys(apiKeys);
+  const merged = mergeDiscoveredModels(PROVIDER_MODELS, discovered);
+
+  res.json(merged);
 });
 
 // POST /api/ai/chat — stream AI response

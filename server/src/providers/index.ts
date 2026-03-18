@@ -6,7 +6,7 @@ import type { ProviderAdapter } from './types.js';
 
 type Mode = 'long_form' | 'role_play' | 'sexting';
 
-type ProviderModelOption = {
+export type ProviderModelOption = {
   id: string;
   label: string;
   free: boolean;
