@@ -1,0 +1,9 @@
+.main {
+  background: var(--bg-void);
+}
+
+.pageContent {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}

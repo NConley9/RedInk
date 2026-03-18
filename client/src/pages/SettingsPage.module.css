@@ -1,0 +1,100 @@
+.page {
+  padding: 24px 18px 100px;
+  overflow-y: auto;
+}
+
+.header {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.subtitle {
+  margin-top: 10px;
+  color: var(--text-secondary);
+}
+
+.section {
+  padding-top: 24px;
+}
+
+.sectionTitle {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cardTop p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.on,
+.off {
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.on {
+  background: rgba(107, 158, 122, 0.18);
+  color: var(--mode-roleplay);
+}
+
+.off {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+}
+
+.cardActions {
+  display: flex;
+  gap: 10px;
+}
+
+.models {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.modelChip {
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+@media (min-width: 900px) {
+  .page {
+    padding: 28px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

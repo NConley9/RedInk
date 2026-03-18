@@ -1,0 +1,33 @@
+.wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.role {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.content {
+  color: var(--text-primary);
+}
+
+.content p + p {
+  margin-top: 12px;
+}
+
+.content ul,
+.content ol {
+  padding-left: 20px;
+  margin-top: 10px;
+}
+
+.image {
+  margin-top: 14px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
+}

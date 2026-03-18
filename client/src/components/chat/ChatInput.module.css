@@ -1,0 +1,29 @@
+.wrap {
+  padding: 16px;
+  border-top: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, rgba(15, 15, 26, 0.9), rgba(15, 15, 26, 1));
+}
+
+.inner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.input {
+  min-height: 56px;
+  max-height: 180px;
+}
+
+.hint {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 767px) {
+  .inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

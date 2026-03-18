@@ -1,0 +1,22 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+}
+
+.error {
+  margin: 0 16px;
+  padding: 10px 14px;
+  border: 1px solid rgba(224, 112, 112, 0.24);
+  background: rgba(224, 112, 112, 0.08);
+  color: #f0a3a3;
+  border-radius: var(--radius-md);
+}
