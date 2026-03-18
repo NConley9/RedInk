@@ -6,9 +6,11 @@ export function useSettings() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [models, setModels] = useState<ProviderModels>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const [settingsData, modelsData] = await Promise.all([
         apiFetch<UserSettings>('/api/settings'),
@@ -16,6 +18,8 @@ export function useSettings() {
       ]);
       setSettings(settingsData);
       setModels(modelsData);
+    } catch (e) {
+      setError((e as Error).message || 'Failed to load settings.');
     } finally {
       setLoading(false);
     }
@@ -53,5 +57,5 @@ export function useSettings() {
     );
   };
 
-  return { settings, models, loading, reload: load, saveSettings, removeKey };
+  return { settings, models, loading, error, reload: load, saveSettings, removeKey };
 }

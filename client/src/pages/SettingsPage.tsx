@@ -11,7 +11,7 @@ const PROVIDER_DESCRIPTIONS: Record<string, string> = {
 };
 
 export function SettingsPage() {
-  const { settings, models, saveSettings, removeKey } = useSettings();
+  const { settings, models, loading, error, reload, saveSettings, removeKey } = useSettings();
   const [draftKeys, setDraftKeys] = useState<Record<string, string>>({});
   const [lmUrl, setLmUrl] = useState(settings?.lmstudio_base_url || 'http://localhost:1234/v1');
   const [saving, setSaving] = useState(false);
@@ -41,6 +41,21 @@ export function SettingsPage() {
         </div>
       </section>
 
+      {loading && (
+        <section className={styles.stateCard}>
+          <div className="spinner" />
+          <p>Loading provider settings...</p>
+        </section>
+      )}
+
+      {!loading && error && (
+        <section className={styles.stateCard}>
+          <p>Could not load settings: {error}</p>
+          <button className="btn btn-primary" onClick={() => void reload()}>Retry</button>
+        </section>
+      )}
+
+      {!loading && !error && (
       <section className={styles.section}>
         <div className={styles.sectionTitle}>Providers</div>
         <div className={styles.grid}>
@@ -91,6 +106,7 @@ export function SettingsPage() {
           })}
         </div>
       </section>
+      )}
     </div>
   );
 }

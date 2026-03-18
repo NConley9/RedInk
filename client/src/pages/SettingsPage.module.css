@@ -17,6 +17,21 @@
   padding-top: 24px;
 }
 
+.stateCard {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stateCard p {
+  color: var(--text-secondary);
+}
+
 .sectionTitle {
   font-size: 0.78rem;
   letter-spacing: 0.08em;
