@@ -20,6 +20,7 @@ export function ChatPage() {
   const [rewriteChoice, setRewriteChoice] = useState('');
   const [updatingModel, setUpdatingModel] = useState(false);
   const [rewriting, setRewriting] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const autoStartedChatIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -125,51 +126,73 @@ export function ChatPage() {
       <ChatHeader chat={chat} />
       <ChatWindow messages={messages} mode={chat.mode} streamingText={streamBuffer} />
       {error && <div className={styles.error}>{error}</div>}
-      <div className={styles.toolsBar}>
-        <div className={styles.toolGroup}>
-          <span className={styles.toolLabel}>Live model</span>
-          <select
-            className={`input ${styles.select}`}
-            value={activeProvider}
-            onChange={(e) => setActiveProvider(e.target.value)}
-            disabled={streaming || updatingModel}
-          >
-            {availableProviders.map((provider) => (
-              <option key={provider} value={provider}>{provider}</option>
-            ))}
-          </select>
-          <select
-            className={`input ${styles.select}`}
-            value={activeModel}
-            onChange={(e) => setActiveModel(e.target.value)}
-            disabled={streaming || updatingModel || providerModels.length === 0}
-          >
-            {providerModels.map((model) => (
-              <option key={model.id} value={model.id}>{model.label}</option>
-            ))}
-          </select>
-          <button className="btn btn-ghost" onClick={() => void applyChatModel()} disabled={streaming || updatingModel || !activeProvider || !activeModel}>
-            {updatingModel ? 'Applying…' : 'Apply'}
-          </button>
-        </div>
-
-        <div className={styles.toolGroup}>
-          <span className={styles.toolLabel}>Rewrite with…</span>
-          <select
-            className={`input ${styles.rewriteSelect}`}
-            value={rewriteChoice}
-            onChange={(e) => setRewriteChoice(e.target.value)}
-            disabled={streaming || rewriting || rewriteOptions.length === 0}
-          >
-            {rewriteOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          <button className="btn btn-primary" onClick={() => void handleRewrite()} disabled={streaming || rewriting || !rewriteChoice}>
-            {rewriting ? 'Rewriting…' : 'Rewrite last prompt'}
-          </button>
-        </div>
+      <div className={styles.toolsLauncherWrap}>
+        <button className="btn btn-ghost" onClick={() => setToolsOpen(true)}>
+          Model Tools
+        </button>
       </div>
+
+      {toolsOpen && (
+        <div className="overlay" onClick={(e) => e.target === e.currentTarget && setToolsOpen(false)}>
+          <div className={`${styles.toolsModal} modal`}>
+            <div className={styles.modalHeader}>
+              <div>
+                <h2 className="text-display">Model Controls</h2>
+                <p className="text-muted">Switch active model or rewrite the latest prompt with another model.</p>
+              </div>
+              <button className="btn-icon" onClick={() => setToolsOpen(false)} aria-label="Close model tools">✕</button>
+            </div>
+
+            <div className={styles.modalSection}>
+              <div className={styles.modalSectionTitle}>Live model</div>
+              <div className={styles.modalControls}>
+                <select
+                  className={`input ${styles.select}`}
+                  value={activeProvider}
+                  onChange={(e) => setActiveProvider(e.target.value)}
+                  disabled={streaming || updatingModel}
+                >
+                  {availableProviders.map((provider) => (
+                    <option key={provider} value={provider}>{provider}</option>
+                  ))}
+                </select>
+                <select
+                  className={`input ${styles.select}`}
+                  value={activeModel}
+                  onChange={(e) => setActiveModel(e.target.value)}
+                  disabled={streaming || updatingModel || providerModels.length === 0}
+                >
+                  {providerModels.map((model) => (
+                    <option key={model.id} value={model.id}>{model.label}</option>
+                  ))}
+                </select>
+                <button className="btn btn-ghost" onClick={() => void applyChatModel()} disabled={streaming || updatingModel || !activeProvider || !activeModel}>
+                  {updatingModel ? 'Applying…' : 'Apply'}
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.modalSection}>
+              <div className={styles.modalSectionTitle}>Rewrite with...</div>
+              <div className={styles.modalControls}>
+                <select
+                  className={`input ${styles.rewriteSelect}`}
+                  value={rewriteChoice}
+                  onChange={(e) => setRewriteChoice(e.target.value)}
+                  disabled={streaming || rewriting || rewriteOptions.length === 0}
+                >
+                  {rewriteOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                <button className="btn btn-primary" onClick={() => void handleRewrite()} disabled={streaming || rewriting || !rewriteChoice}>
+                  {rewriting ? 'Rewriting…' : 'Rewrite last prompt'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <ChatInput
         mode={chat.mode}
         disabled={streaming}
