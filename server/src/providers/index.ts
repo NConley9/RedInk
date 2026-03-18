@@ -48,12 +48,12 @@ export const PROVIDER_MODELS: Record<string, ProviderModelOption[]> = {
       notes: 'Lower cost and latency, better for shorter turns.',
     },
     {
-      id: 'gemini-1.5-pro',
-      label: 'Gemini 1.5 Pro',
+      id: 'gemini-1.5-flash',
+      label: 'Gemini 1.5 Flash',
       free: true,
-      recommended_modes: ['long_form'],
-      input_token_soft_limit: 32000,
-      notes: 'Better long-context coherence for story-heavy runs.',
+      recommended_modes: ['role_play'],
+      input_token_soft_limit: 22000,
+      notes: 'Stable compatibility option for broad Gemini availability.',
     },
   ],
   groq: [
