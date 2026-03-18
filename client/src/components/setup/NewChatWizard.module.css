@@ -154,6 +154,27 @@
   color: var(--accent);
 }
 
+.recommendedBadge,
+.riskBadge {
+  display: inline-flex;
+  margin-left: 8px;
+  padding: 3px 8px;
+  border-radius: 100px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.recommendedBadge {
+  background: rgba(107, 158, 122, 0.16);
+  color: var(--mode-roleplay);
+}
+
+.riskBadge {
+  background: rgba(224, 112, 112, 0.14);
+  color: #f0a3a3;
+}
+
 .providerList {
   display: flex;
   flex-direction: column;

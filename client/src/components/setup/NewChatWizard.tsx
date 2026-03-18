@@ -48,6 +48,14 @@ export function NewChatWizard({ onClose }: Props) {
   const steps: Step[] = ['mode', 'persona', 'loveInterest', 'scenario', 'model'];
   const stepIndex = steps.indexOf(step);
 
+  const estimatedInitialPromptTokens = Math.ceil((
+    6000 +
+    (config.personaCharacter?.content_md.length || 0) +
+    (config.loveInterestCharacter?.content_md.length || 0) +
+    (config.scenario?.content_md.length || 0) +
+    600
+  ) / 4);
+
   const goBack = () => {
     if (stepIndex > 0) setStep(steps[stepIndex - 1]);
   };
@@ -247,7 +255,10 @@ export function NewChatWizard({ onClose }: Props) {
                   <div key={provider} className={styles.providerGroup}>
                     <div className={styles.providerLabel}>{PROVIDER_LABELS[provider] || provider}</div>
                     <div className={styles.modelGrid}>
-                      {(models[provider] || []).map((m) => (
+                      {(models[provider] || []).map((m) => {
+                        const recommended = !!config.mode && (m.recommended_modes || []).includes(config.mode);
+                        const nearLimit = !!m.input_token_soft_limit && estimatedInitialPromptTokens > Math.floor(m.input_token_soft_limit * 0.85);
+                        return (
                         <button
                           key={m.id}
                           className={`card ${styles.modelCard}`}
@@ -256,8 +267,14 @@ export function NewChatWizard({ onClose }: Props) {
                         >
                           <span style={{ fontSize: '0.875rem' }}>{m.label}</span>
                           {m.free && <span className={styles.freeBadge}>Free</span>}
+                          {recommended && <span className={styles.recommendedBadge}>Recommended</span>}
+                          {nearLimit && <span className={styles.riskBadge}>High context risk</span>}
+                          {recommended && m.notes && (
+                            <p className="text-muted" style={{ fontSize: '0.72rem', marginTop: 8 }}>{m.notes}</p>
+                          )}
                         </button>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ))}

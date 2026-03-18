@@ -9,6 +9,9 @@ import { ChatWindow } from '../components/chat/ChatWindow.js';
 import { ChatInput } from '../components/chat/ChatInput.js';
 import styles from './ChatPage.module.css';
 
+const BASE_SYSTEM_PROMPT_CHARS = 6000;
+const TOKEN_ESTIMATE_DIVISOR = 4;
+
 export function ChatPage() {
   const { chatId } = useParams();
   const { chat, messages, streaming, streamBuffer, error, loadChat, sendMessage, updateChatModel, rewriteLastPrompt } = useChatSession(chatId || null);
@@ -104,11 +107,43 @@ export function ChatPage() {
       availableProviders.flatMap((provider) =>
         (models[provider] || []).map((model) => ({
           value: `${provider}::${model.id}`,
-          label: `${provider} / ${model.label}`,
+          label: `${provider} / ${model.label}${chat && (model.recommended_modes || []).includes(chat.mode) ? ' • Recommended' : ''}`,
+          provider,
+          model,
         })),
       ),
-    [availableProviders, models],
+    [availableProviders, models, chat],
   );
+
+  const estimatedPromptTokens = useMemo(() => {
+    const historyChars = messages.reduce((acc, msg) => acc + msg.content.length, 0);
+    const contextChars =
+      (personaContext?.content_md.length || 0) +
+      (loveInterestContext?.content_md.length || 0) +
+      (scenarioContext?.content_md.length || 0);
+    return Math.ceil((BASE_SYSTEM_PROMPT_CHARS + contextChars + historyChars) / TOKEN_ESTIMATE_DIVISOR);
+  }, [messages, personaContext?.content_md, loveInterestContext?.content_md, scenarioContext?.content_md]);
+
+  const activeModelMeta = useMemo(
+    () => (models[activeProvider] || []).find((m) => m.id === activeModel) || null,
+    [models, activeProvider, activeModel],
+  );
+
+  const rewriteModelMeta = useMemo(() => {
+    const [provider, modelId] = rewriteChoice.split('::');
+    if (!provider || !modelId) return null;
+    return (models[provider] || []).find((m) => m.id === modelId) || null;
+  }, [models, rewriteChoice]);
+
+  const activeNearLimit = useMemo(() => {
+    if (!activeModelMeta?.input_token_soft_limit) return false;
+    return estimatedPromptTokens > Math.floor(activeModelMeta.input_token_soft_limit * 0.85);
+  }, [activeModelMeta?.input_token_soft_limit, estimatedPromptTokens]);
+
+  const rewriteNearLimit = useMemo(() => {
+    if (!rewriteModelMeta?.input_token_soft_limit) return false;
+    return estimatedPromptTokens > Math.floor(rewriteModelMeta.input_token_soft_limit * 0.85);
+  }, [rewriteModelMeta?.input_token_soft_limit, estimatedPromptTokens]);
 
   useEffect(() => {
     if (!chat) return;
@@ -194,13 +229,23 @@ export function ChatPage() {
                   disabled={streaming || updatingModel || providerModels.length === 0}
                 >
                   {providerModels.map((model) => (
-                    <option key={model.id} value={model.id}>{model.label}</option>
+                    <option key={model.id} value={model.id}>
+                      {model.label}{chat && (model.recommended_modes || []).includes(chat.mode) ? ' • Recommended' : ''}
+                    </option>
                   ))}
                 </select>
                 <button className="btn btn-ghost" onClick={() => void applyChatModel()} disabled={streaming || updatingModel || !activeProvider || !activeModel}>
                   {updatingModel ? 'Applying…' : 'Apply'}
                 </button>
               </div>
+              {chat && activeModelMeta && (activeModelMeta.recommended_modes || []).includes(chat.mode) && (
+                <p className={styles.infoText}>Recommended for {chat.mode.replace('_', ' ')}. {activeModelMeta.notes || ''}</p>
+              )}
+              {activeNearLimit && (
+                <div className={styles.warningBox}>
+                  Estimated prompt size is ~{estimatedPromptTokens} tokens, near or above this model's safe budget ({activeModelMeta?.input_token_soft_limit}).
+                </div>
+              )}
             </div>
 
             <div className={styles.modalSection}>
@@ -220,6 +265,14 @@ export function ChatPage() {
                   {rewriting ? 'Rewriting…' : 'Rewrite last prompt'}
                 </button>
               </div>
+              {chat && rewriteModelMeta && (rewriteModelMeta.recommended_modes || []).includes(chat.mode) && (
+                <p className={styles.infoText}>Recommended for {chat.mode.replace('_', ' ')}. {rewriteModelMeta.notes || ''}</p>
+              )}
+              {rewriteNearLimit && (
+                <div className={styles.warningBox}>
+                  Rewrite may exceed this model's context budget (~{estimatedPromptTokens} estimated vs {rewriteModelMeta?.input_token_soft_limit} target).
+                </div>
+              )}
               {!contextReady && <p className="text-muted">Waiting for character/scenario context to load before rewriting.</p>}
             </div>
           </div>

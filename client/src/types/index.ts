@@ -57,6 +57,9 @@ export interface ModelOption {
   id: string;
   label: string;
   free: boolean;
+  recommended_modes?: Mode[];
+  input_token_soft_limit?: number;
+  notes?: string;
 }
 
 export type ProviderModels = Record<string, ModelOption[]>;
