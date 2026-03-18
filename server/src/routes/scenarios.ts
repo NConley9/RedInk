@@ -12,6 +12,7 @@ scenariosRouter.get('/', async (req: AuthRequest, res: Response) => {
     .from('scenarios')
     .select('*')
     .or(`user_id.is.null,user_id.eq.${req.userId}`)
+    .order('is_stock', { ascending: false })
     .order('is_global', { ascending: false })
     .order('name');
 
@@ -39,7 +40,7 @@ scenariosRouter.post('/', async (req: AuthRequest, res: Response) => {
 
   const { data, error } = await supabaseAdmin
     .from('scenarios')
-    .insert({ user_id: req.userId, name, content_md, tags: tags || [], is_global: false })
+    .insert({ user_id: req.userId, name, content_md, tags: tags || [], is_global: false, is_stock: false })
     .select()
     .single();
 

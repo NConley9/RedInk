@@ -16,6 +16,20 @@ const WORKSPACE = join(__dirname, '..', '..', '..'); // webapp/server/scripts ->
 const CHARACTERS_DIR = join(WORKSPACE, 'Characters');
 const SCENARIOS_DIR  = join(WORKSPACE, 'Scenarios');
 
+const STOCK_CHARACTER_KEYS = new Set(['kendra', 'tyson', 'nick', 'meganparker']);
+const STOCK_SCENARIO_KEYS = new Set([
+  'xxxpawn',
+  'theconsolationprize',
+  'theconfession',
+  'freeuse',
+  'suburbansecrets',
+  'suburbansecretscom',
+]);
+
+function normalizeKey(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
 async function seedDirectory(
   dir: string,
   table: 'characters' | 'scenarios',
@@ -35,6 +49,13 @@ async function seedDirectory(
   for (const file of mdFiles) {
     const name = basename(file, '.md');
     const content_md = await readFile(join(dir, file), 'utf-8');
+    const normalizedName = normalizeKey(name);
+    const isStock =
+      table === 'characters'
+        ? STOCK_CHARACTER_KEYS.has(normalizedName)
+        : STOCK_SCENARIO_KEYS.has(normalizedName);
+
+    const resolvedTags = Array.from(new Set([...(tags || []), ...(isStock ? ['stock'] : [])]));
 
     const { data: existing } = await supabase
       .from(table)
@@ -46,11 +67,24 @@ async function seedDirectory(
     const query = existing?.id
       ? supabase
           .from(table)
-          .update({ content_md, tags, is_global: true, updated_at: new Date().toISOString() })
+          .update({
+            content_md,
+            tags: resolvedTags,
+            is_global: true,
+            is_stock: isStock,
+            updated_at: new Date().toISOString(),
+          })
           .eq('id', existing.id)
       : supabase
           .from(table)
-          .insert({ name, content_md, tags, is_global: true, user_id: null });
+          .insert({
+            name,
+            content_md,
+            tags: resolvedTags,
+            is_global: true,
+            is_stock: isStock,
+            user_id: null,
+          });
 
     const { error } = await query;
 

@@ -17,7 +17,7 @@ export function CharacterCard({ character, selected, onClick, onEdit, onDelete }
         <div>
           <h3 className={styles.name}>{character.name}</h3>
           <div className={styles.meta}>
-            {character.is_global ? <span className={styles.global}>Seeded</span> : <span className={styles.custom}>Custom</span>}
+            {character.is_stock ? <span className={styles.stock}>Stock</span> : (character.is_global ? <span className={styles.global}>Seeded</span> : <span className={styles.custom}>Custom</span>)}
           </div>
         </div>
         {!character.is_global && (onEdit || onDelete) && (

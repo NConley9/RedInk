@@ -53,6 +53,7 @@ create table if not exists characters (
   content_md  text not null,
   tags        text[] default '{}',
   is_global   boolean default false,
+  is_stock    boolean default false,
   created_at  timestamptz default now(),
   updated_at  timestamptz default now()
 );
@@ -89,6 +90,7 @@ create table if not exists scenarios (
   content_md  text not null,
   tags        text[] default '{}',
   is_global   boolean default false,
+  is_stock    boolean default false,
   created_at  timestamptz default now(),
   updated_at  timestamptz default now()
 );

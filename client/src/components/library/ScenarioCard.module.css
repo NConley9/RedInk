@@ -27,12 +27,18 @@
 }
 
 .global,
-.custom {
+.custom,
+.stock {
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 4px 8px;
   border-radius: 100px;
+}
+
+.stock {
+  background: rgba(180, 58, 52, 0.16);
+  color: var(--accent);
 }
 
 .global {

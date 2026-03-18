@@ -7,6 +7,7 @@ export interface Character {
   content_md: string;
   tags: string[];
   is_global: boolean;
+  is_stock?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -18,6 +19,7 @@ export interface Scenario {
   content_md: string;
   tags: string[];
   is_global: boolean;
+  is_stock?: boolean;
   created_at: string;
   updated_at: string;
 }

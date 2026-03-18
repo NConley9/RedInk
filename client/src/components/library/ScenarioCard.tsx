@@ -17,7 +17,7 @@ export function ScenarioCard({ scenario, selected, onClick, onEdit, onDelete }: 
         <div>
           <h3 className={styles.name}>{scenario.name}</h3>
           <div className={styles.meta}>
-            {scenario.is_global ? <span className={styles.global}>Seeded</span> : <span className={styles.custom}>Custom</span>}
+            {scenario.is_stock ? <span className={styles.stock}>Stock</span> : (scenario.is_global ? <span className={styles.global}>Seeded</span> : <span className={styles.custom}>Custom</span>)}
           </div>
         </div>
         {!scenario.is_global && (onEdit || onDelete) && (
