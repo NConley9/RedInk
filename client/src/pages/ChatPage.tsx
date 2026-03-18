@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useChatSession } from '../hooks/useChats.js';
 import { useCharacters } from '../hooks/useCharacters.js';
@@ -20,6 +20,7 @@ export function ChatPage() {
   const [rewriteChoice, setRewriteChoice] = useState('');
   const [updatingModel, setUpdatingModel] = useState(false);
   const [rewriting, setRewriting] = useState(false);
+  const autoStartedChatIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (chatId) void loadChat(chatId);
@@ -39,6 +40,22 @@ export function ChatPage() {
     () => scenarios.find((item) => item.id === chat?.scenario_id) || null,
     [scenarios, chat?.scenario_id],
   );
+
+  useEffect(() => {
+    if (!chat || messages.length > 0 || streaming) return;
+    if (autoStartedChatIds.current.has(chat.id)) return;
+
+    const modeLabel = chat.mode.replace('_', ' ');
+    const personaClause = selectedPersona ? ` and persona ${selectedPersona.name}` : '';
+    const loveInterestClause = selectedLoveInterest
+      ? ` with love interest ${selectedLoveInterest.name}`
+      : '';
+    const scenarioClause = selectedScenario ? ` in scenario ${selectedScenario.name}` : '';
+    const starterPrompt = `Let's start a ${modeLabel} story${personaClause}${loveInterestClause}${scenarioClause}.`;
+
+    autoStartedChatIds.current.add(chat.id);
+    void sendMessage(starterPrompt, selectedPersona, selectedLoveInterest, selectedScenario);
+  }, [chat, messages.length, streaming, selectedPersona, selectedLoveInterest, selectedScenario, sendMessage]);
 
   const availableProviders = useMemo(() => {
     const configured = settings?.api_keys_configured || [];
