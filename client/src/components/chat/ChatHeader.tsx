@@ -14,7 +14,8 @@ export function ChatHeader({ chat }: { chat: Chat | null }) {
           <h1 className={styles.title}>{chat?.title || 'Chat'}</h1>
           <div className={styles.meta}>
             {chat && <span className={`mode-badge ${chat.mode}`}>{chat.mode.replace('_', ' ')}</span>}
-            {chat?.character?.name && <span className={styles.pill}>{chat.character.name}</span>}
+            {chat?.persona?.name && <span className={styles.pill}>Persona: {chat.persona.name}</span>}
+            {chat?.love_interest?.name && <span className={styles.pill}>Love Interest: {chat.love_interest.name}</span>}
             {chat?.scenario?.name && <span className={styles.pill}>{chat.scenario.name}</span>}
           </div>
         </div>

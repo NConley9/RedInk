@@ -18,9 +18,14 @@ export function ChatPage() {
     if (chatId) void loadChat(chatId);
   }, [chatId, loadChat]);
 
-  const selectedCharacter = useMemo(
+  const selectedLoveInterest = useMemo(
     () => characters.find((item) => item.id === chat?.character_id) || null,
     [characters, chat?.character_id],
+  );
+
+  const selectedPersona = useMemo(
+    () => characters.find((item) => item.id === chat?.persona_character_id) || null,
+    [characters, chat?.persona_character_id],
   );
 
   const selectedScenario = useMemo(
@@ -40,7 +45,7 @@ export function ChatPage() {
       <ChatInput
         mode={chat.mode}
         disabled={streaming}
-        onSend={(value) => sendMessage(value, selectedCharacter, selectedScenario)}
+        onSend={(value) => sendMessage(value, selectedPersona, selectedLoveInterest, selectedScenario)}
       />
     </div>
   );

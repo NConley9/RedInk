@@ -22,7 +22,8 @@ First-person text-style roleplay.
 
 export async function buildServerSystemPrompt(params: {
   mode?: string;
-  characterContent?: string | null;
+  personaContent?: string | null;
+  loveInterestContent?: string | null;
   scenarioContent?: string | null;
   messages: ChatMessage[];
   fallbackSystemPrompt?: string;
@@ -43,8 +44,12 @@ export async function buildServerSystemPrompt(params: {
     parts.push('', MODE_INSTRUCTIONS[params.mode]);
   }
 
-  if (params.characterContent) {
-    parts.push('', `# Character\n${params.characterContent}`);
+  if (params.personaContent) {
+    parts.push('', `# User Persona\n${params.personaContent}`);
+  }
+
+  if (params.loveInterestContent) {
+    parts.push('', `# Love Interest Character\n${params.loveInterestContent}`);
   }
 
   if (params.scenarioContent) {

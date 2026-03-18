@@ -21,11 +21,12 @@ export function useChats() {
     const chat = await apiFetch<Chat>('/api/chats', {
       method: 'POST',
       body: JSON.stringify({
-        title: config.character
-          ? `${config.character.name} — ${config.mode.replace('_', ' ')}`
+        title: config.loveInterestCharacter
+          ? `${config.loveInterestCharacter.name} — ${config.mode.replace('_', ' ')}`
           : `${config.mode.replace('_', ' ')} — new`,
         mode: config.mode,
-        character_id: config.character?.id || null,
+        persona_character_id: config.personaCharacter?.id || null,
+        character_id: config.loveInterestCharacter.id,
         scenario_id: config.scenario?.id || null,
         model_provider: config.provider,
         model_name: config.model,
@@ -66,7 +67,8 @@ export function useChatSession(chatId: string | null) {
 
   const sendMessage = async (
     content: string,
-    character: import('../types/index.js').Character | null,
+    personaCharacter: import('../types/index.js').Character | null,
+    loveInterestCharacter: import('../types/index.js').Character | null,
     scenario: import('../types/index.js').Scenario | null,
   ) => {
     if (!chat || streaming) return;
@@ -97,7 +99,8 @@ export function useChatSession(chatId: string | null) {
         model: chat.model_name,
         messages: history,
         mode: chat.mode,
-        characterContent: character?.content_md || null,
+        personaContent: personaCharacter?.content_md || null,
+        loveInterestContent: loveInterestCharacter?.content_md || null,
         scenarioContent: scenario?.content_md || null,
       },
       (token) => {

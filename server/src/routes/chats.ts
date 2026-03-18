@@ -12,7 +12,8 @@ chatsRouter.get('/', async (req: AuthRequest, res: Response) => {
     .from('chats')
     .select(`
       *,
-      character:characters(id, name),
+      love_interest:characters!chats_character_id_fkey(id, name),
+      persona:characters!chats_persona_character_id_fkey(id, name),
       scenario:scenarios(id, name),
       messages(content, created_at, role)
     `)
@@ -37,7 +38,13 @@ chatsRouter.get('/', async (req: AuthRequest, res: Response) => {
 chatsRouter.get('/:id', async (req: AuthRequest, res: Response) => {
   const { data, error } = await supabaseAdmin
     .from('chats')
-    .select(`*, messages(*)`)
+    .select(`
+      *,
+      love_interest:characters!chats_character_id_fkey(id, name),
+      persona:characters!chats_persona_character_id_fkey(id, name),
+      scenario:scenarios(id, name),
+      messages(*)
+    `)
     .eq('id', req.params.id)
     .eq('user_id', req.userId!)
     .order('created_at', { referencedTable: 'messages', ascending: true })
@@ -49,7 +56,7 @@ chatsRouter.get('/:id', async (req: AuthRequest, res: Response) => {
 
 // POST /api/chats — create new chat
 chatsRouter.post('/', async (req: AuthRequest, res: Response) => {
-  const { title, mode, character_id, scenario_id, model_provider, model_name } = req.body;
+  const { title, mode, persona_character_id, character_id, scenario_id, model_provider, model_name } = req.body;
 
   const { data, error } = await supabaseAdmin
     .from('chats')
@@ -57,6 +64,7 @@ chatsRouter.post('/', async (req: AuthRequest, res: Response) => {
       user_id: req.userId,
       title: title || 'New Chat',
       mode,
+      persona_character_id: persona_character_id || null,
       character_id: character_id || null,
       scenario_id: scenario_id || null,
       model_provider,

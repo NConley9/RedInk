@@ -7,7 +7,7 @@ import { useSettings } from '../../hooks/useSettings.js';
 import { useChats } from '../../hooks/useChats.js';
 import styles from './NewChatWizard.module.css';
 
-type Step = 'mode' | 'character' | 'scenario' | 'model';
+type Step = 'mode' | 'persona' | 'loveInterest' | 'scenario' | 'model';
 
 const MODE_OPTIONS: Array<{ id: Mode; label: string; description: string; icon: string }> = [
   { id: 'long_form', label: 'Long Form', description: 'Full chapters, extended narrative, cinematic storytelling', icon: '📖' },
@@ -45,7 +45,7 @@ export function NewChatWizard({ onClose }: Props) {
     (p) => p === 'lmstudio' || configuredProviders.includes(p),
   );
 
-  const steps: Step[] = ['mode', 'character', 'scenario', 'model'];
+  const steps: Step[] = ['mode', 'persona', 'loveInterest', 'scenario', 'model'];
   const stepIndex = steps.indexOf(step);
 
   const goBack = () => {
@@ -54,11 +54,16 @@ export function NewChatWizard({ onClose }: Props) {
 
   const handleModeSelect = (mode: Mode) => {
     setConfig((c) => ({ ...c, mode }));
-    setStep('character');
+    setStep('persona');
   };
 
-  const handleCharacterSelect = (character: Character | null) => {
-    setConfig((c) => ({ ...c, character }));
+  const handlePersonaSelect = (personaCharacter: Character | null) => {
+    setConfig((c) => ({ ...c, personaCharacter }));
+    setStep('loveInterest');
+  };
+
+  const handleLoveInterestSelect = (loveInterestCharacter: Character) => {
+    setConfig((c) => ({ ...c, loveInterestCharacter }));
     setStep('scenario');
   };
 
@@ -116,24 +121,55 @@ export function NewChatWizard({ onClose }: Props) {
           </div>
         )}
 
-        {/* Step: Character */}
-        {step === 'character' && (
+        {/* Step: Persona */}
+        {step === 'persona' && (
           <div className={styles.stepContent}>
             <div className={styles.stepNav}>
               <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={goBack}>← Back</button>
             </div>
-            <h2 className="text-display">Choose a character</h2>
-            <p className="text-muted" style={{ fontSize: '0.875rem', marginTop: 4 }}>Optional — skip to use a free-form character</p>
+            <h2 className="text-display">Choose your persona</h2>
+            <p className="text-muted" style={{ fontSize: '0.875rem', marginTop: 4 }}>Optional — who you are in this chat</p>
             {charsLoading ? (
               <div className={styles.loading}><div className="spinner" /></div>
             ) : (
               <div className={styles.itemGrid}>
-                <button className={`card ${styles.skipCard}`} onClick={() => handleCharacterSelect(null)}>
-                  <span>No character</span>
-                  <p className="text-muted" style={{ fontSize: '0.8rem' }}>Free-form, no character context</p>
+                <button className={`card ${styles.skipCard}`} onClick={() => handlePersonaSelect(null)}>
+                  <span>No persona</span>
+                  <p className="text-muted" style={{ fontSize: '0.8rem' }}>Write as yourself with no persona profile</p>
                 </button>
                 {characters.map((c) => (
-                  <button key={c.id} className={`card ${styles.itemCard}`} onClick={() => handleCharacterSelect(c)}>
+                  <button key={c.id} className={`card ${styles.itemCard}`} onClick={() => handlePersonaSelect(c)}>
+                    <div className={styles.itemCardInner}>
+                      <div className={styles.itemAvatar}>{c.name[0].toUpperCase()}</div>
+                      <div>
+                        <strong style={{ fontSize: '0.9rem' }}>{c.name}</strong>
+                        {c.is_global && <span className={styles.globalBadge}>Global</span>}
+                        <p className="text-muted truncate" style={{ fontSize: '0.78rem', marginTop: 2, maxWidth: 220 }}>
+                          {c.content_md.slice(0, 80)}...
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step: Love Interest */}
+        {step === 'loveInterest' && (
+          <div className={styles.stepContent}>
+            <div className={styles.stepNav}>
+              <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={goBack}>← Back</button>
+            </div>
+            <h2 className="text-display">Choose a love interest</h2>
+            <p className="text-muted" style={{ fontSize: '0.875rem', marginTop: 4 }}>Required — this character is who the assistant will play</p>
+            {charsLoading ? (
+              <div className={styles.loading}><div className="spinner" /></div>
+            ) : (
+              <div className={styles.itemGrid}>
+                {characters.map((c) => (
+                  <button key={c.id} className={`card ${styles.itemCard}`} onClick={() => handleLoveInterestSelect(c)}>
                     <div className={styles.itemCardInner}>
                       <div className={styles.itemAvatar}>{c.name[0].toUpperCase()}</div>
                       <div>

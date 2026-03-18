@@ -23,6 +23,8 @@ aiRouter.post('/chat', async (req: AuthRequest, res: Response) => {
     systemPrompt,
     baseUrl,
     mode,
+    personaContent,
+    loveInterestContent,
     characterContent,
     scenarioContent,
   } = req.body as {
@@ -32,6 +34,8 @@ aiRouter.post('/chat', async (req: AuthRequest, res: Response) => {
     systemPrompt?: string;
     baseUrl?: string;
     mode?: 'long_form' | 'role_play' | 'sexting';
+    personaContent?: string;
+    loveInterestContent?: string;
     characterContent?: string;
     scenarioContent?: string;
   };
@@ -43,7 +47,8 @@ aiRouter.post('/chat', async (req: AuthRequest, res: Response) => {
 
   const { prompt: resolvedSystemPrompt, appliedSkills } = await buildServerSystemPrompt({
     mode,
-    characterContent: characterContent || null,
+    personaContent: personaContent || null,
+    loveInterestContent: loveInterestContent || characterContent || null,
     scenarioContent: scenarioContent || null,
     messages,
     fallbackSystemPrompt: systemPrompt,

@@ -121,6 +121,7 @@ create table if not exists chats (
   user_id         uuid not null references auth.users(id) on delete cascade,
   title           text not null default 'New Chat',
   mode            text not null check (mode in ('long_form', 'role_play', 'sexting')),
+  persona_character_id uuid references characters(id) on delete set null,
   character_id    uuid references characters(id) on delete set null,
   scenario_id     uuid references scenarios(id) on delete set null,
   model_provider  text not null,

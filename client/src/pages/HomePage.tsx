@@ -19,7 +19,7 @@ export function HomePage() {
       <section className={styles.hero}>
         <div>
           <h1>Red Ink</h1>
-          <p className={styles.subtitle}>Frictionless setup. Pick a mode, a character, a scenario, and start writing.</p>
+          <p className={styles.subtitle}>Frictionless setup. Pick a mode, optional persona, love interest, scenario, and start writing.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setSearchParams({ new: '1' })}>New Chat</button>
       </section>

@@ -40,12 +40,14 @@ export interface Chat {
   title: string;
   mode: Mode;
   character_id: string | null;
+  persona_character_id: string | null;
   scenario_id: string | null;
   model_provider: string;
   model_name: string;
   created_at: string;
   updated_at: string;
-  character?: Pick<Character, 'id' | 'name'> | null;
+  love_interest?: Pick<Character, 'id' | 'name'> | null;
+  persona?: Pick<Character, 'id' | 'name'> | null;
   scenario?: Pick<Scenario, 'id' | 'name'> | null;
   last_message?: { content: string; role: string } | null;
   messages?: Message[];
@@ -67,7 +69,8 @@ export interface UserSettings {
 
 export interface NewChatConfig {
   mode: Mode;
-  character: Character | null;
+  loveInterestCharacter: Character;
+  personaCharacter: Character | null;
   scenario: Scenario | null;
   provider: string;
   model: string;
