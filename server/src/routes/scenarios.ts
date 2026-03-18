@@ -11,7 +11,7 @@ scenariosRouter.get('/', async (req: AuthRequest, res: Response) => {
   const { data, error } = await supabaseAdmin
     .from('scenarios')
     .select('*')
-    .or(`user_id.is.null,user_id.eq.${req.userId}`)
+    .or(`and(user_id.is.null,is_stock.eq.true),user_id.eq.${req.userId}`)
     .order('is_stock', { ascending: false })
     .order('is_global', { ascending: false })
     .order('name');
@@ -26,7 +26,7 @@ scenariosRouter.get('/:id', async (req: AuthRequest, res: Response) => {
     .from('scenarios')
     .select('*')
     .eq('id', req.params.id)
-    .or(`user_id.is.null,user_id.eq.${req.userId}`)
+    .or(`and(user_id.is.null,is_stock.eq.true),user_id.eq.${req.userId}`)
     .single();
 
   if (error || !data) { res.status(404).json({ error: 'Not found' }); return; }
