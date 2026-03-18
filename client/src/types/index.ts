@@ -46,9 +46,9 @@ export interface Chat {
   model_name: string;
   created_at: string;
   updated_at: string;
-  love_interest?: Pick<Character, 'id' | 'name'> | null;
-  persona?: Pick<Character, 'id' | 'name'> | null;
-  scenario?: Pick<Scenario, 'id' | 'name'> | null;
+  love_interest?: (Pick<Character, 'id' | 'name'> & { content_md?: string }) | null;
+  persona?: (Pick<Character, 'id' | 'name'> & { content_md?: string }) | null;
+  scenario?: (Pick<Scenario, 'id' | 'name'> & { content_md?: string }) | null;
   last_message?: { content: string; role: string } | null;
   messages?: Message[];
 }

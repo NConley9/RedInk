@@ -12,8 +12,8 @@ import styles from './ChatPage.module.css';
 export function ChatPage() {
   const { chatId } = useParams();
   const { chat, messages, streaming, streamBuffer, error, loadChat, sendMessage, updateChatModel, rewriteLastPrompt } = useChatSession(chatId || null);
-  const { characters } = useCharacters();
-  const { scenarios } = useScenarios();
+  const { characters, loading: charactersLoading } = useCharacters();
+  const { scenarios, loading: scenariosLoading } = useScenarios();
   const { models, settings } = useSettings();
   const [activeProvider, setActiveProvider] = useState('');
   const [activeModel, setActiveModel] = useState('');
@@ -42,21 +42,52 @@ export function ChatPage() {
     [scenarios, chat?.scenario_id],
   );
 
+  const personaContext = useMemo(
+    () => selectedPersona || (chat?.persona?.content_md ? { content_md: chat.persona.content_md } : null),
+    [selectedPersona, chat?.persona?.content_md],
+  );
+
+  const loveInterestContext = useMemo(
+    () => selectedLoveInterest || (chat?.love_interest?.content_md ? { content_md: chat.love_interest.content_md } : null),
+    [selectedLoveInterest, chat?.love_interest?.content_md],
+  );
+
+  const scenarioContext = useMemo(
+    () => selectedScenario || (chat?.scenario?.content_md ? { content_md: chat.scenario.content_md } : null),
+    [selectedScenario, chat?.scenario?.content_md],
+  );
+
+  const contextReady = useMemo(() => {
+    if (!chat) return false;
+    const personaResolved = !chat.persona_character_id || Boolean(personaContext?.content_md);
+    const loveInterestResolved = !chat.character_id || Boolean(loveInterestContext?.content_md);
+    const scenarioResolved = !chat.scenario_id || Boolean(scenarioContext?.content_md);
+
+    if (charactersLoading || scenariosLoading) {
+      return personaResolved && loveInterestResolved && scenarioResolved;
+    }
+
+    return personaResolved && loveInterestResolved && scenarioResolved;
+  }, [chat, personaContext?.content_md, loveInterestContext?.content_md, scenarioContext?.content_md, charactersLoading, scenariosLoading]);
+
   useEffect(() => {
-    if (!chat || messages.length > 0 || streaming) return;
+    if (!chat || messages.length > 0 || streaming || !contextReady) return;
     if (autoStartedChatIds.current.has(chat.id)) return;
 
     const modeLabel = chat.mode.replace('_', ' ');
-    const personaClause = selectedPersona ? ` and persona ${selectedPersona.name}` : '';
-    const loveInterestClause = selectedLoveInterest
-      ? ` with love interest ${selectedLoveInterest.name}`
+    const personaName = selectedPersona?.name || chat.persona?.name;
+    const loveInterestName = selectedLoveInterest?.name || chat.love_interest?.name;
+    const scenarioName = selectedScenario?.name || chat.scenario?.name;
+    const personaClause = personaName ? ` and persona ${personaName}` : '';
+    const loveInterestClause = loveInterestName
+      ? ` with love interest ${loveInterestName}`
       : '';
-    const scenarioClause = selectedScenario ? ` in scenario ${selectedScenario.name}` : '';
+    const scenarioClause = scenarioName ? ` in scenario ${scenarioName}` : '';
     const starterPrompt = `Let's start a ${modeLabel} story${personaClause}${loveInterestClause}${scenarioClause}.`;
 
     autoStartedChatIds.current.add(chat.id);
-    void sendMessage(starterPrompt, selectedPersona, selectedLoveInterest, selectedScenario);
-  }, [chat, messages.length, streaming, selectedPersona, selectedLoveInterest, selectedScenario, sendMessage]);
+    void sendMessage(starterPrompt, personaContext, loveInterestContext, scenarioContext);
+  }, [chat, messages.length, streaming, selectedPersona, selectedLoveInterest, selectedScenario, sendMessage, contextReady, personaContext, loveInterestContext, scenarioContext]);
 
   const availableProviders = useMemo(() => {
     const configured = settings?.api_keys_configured || [];
@@ -111,7 +142,7 @@ export function ChatPage() {
     if (!provider || !model) return;
     setRewriting(true);
     try {
-      await rewriteLastPrompt(provider, model, selectedPersona, selectedLoveInterest, selectedScenario);
+      await rewriteLastPrompt(provider, model, personaContext, loveInterestContext, scenarioContext);
     } finally {
       setRewriting(false);
     }
@@ -185,18 +216,19 @@ export function ChatPage() {
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
-                <button className="btn btn-primary" onClick={() => void handleRewrite()} disabled={streaming || rewriting || !rewriteChoice}>
+                <button className="btn btn-primary" onClick={() => void handleRewrite()} disabled={streaming || rewriting || !rewriteChoice || !contextReady}>
                   {rewriting ? 'Rewriting…' : 'Rewrite last prompt'}
                 </button>
               </div>
+              {!contextReady && <p className="text-muted">Waiting for character/scenario context to load before rewriting.</p>}
             </div>
           </div>
         </div>
       )}
       <ChatInput
         mode={chat.mode}
-        disabled={streaming}
-        onSend={(value) => sendMessage(value, selectedPersona, selectedLoveInterest, selectedScenario)}
+        disabled={streaming || !contextReady}
+        onSend={(value) => sendMessage(value, personaContext, loveInterestContext, scenarioContext)}
       />
     </div>
   );

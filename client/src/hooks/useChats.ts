@@ -59,6 +59,8 @@ export function useChatSession(chatId: string | null) {
   const [streamBuffer, setStreamBuffer] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  type PromptContext = { content_md: string } | null;
+
   const loadChat = useCallback(async (id: string) => {
     const data = await apiFetch<Chat>(`/api/chats/${id}`);
     setChat(data);
@@ -67,9 +69,9 @@ export function useChatSession(chatId: string | null) {
 
   const sendMessage = async (
     content: string,
-    personaCharacter: import('../types/index.js').Character | null,
-    loveInterestCharacter: import('../types/index.js').Character | null,
-    scenario: import('../types/index.js').Scenario | null,
+    personaContext: PromptContext,
+    loveInterestContext: PromptContext,
+    scenarioContext: PromptContext,
   ) => {
     if (!chat || streaming) return;
 
@@ -99,9 +101,9 @@ export function useChatSession(chatId: string | null) {
         model: chat.model_name,
         messages: history,
         mode: chat.mode,
-        personaContent: personaCharacter?.content_md || null,
-        loveInterestContent: loveInterestCharacter?.content_md || null,
-        scenarioContent: scenario?.content_md || null,
+        personaContent: personaContext?.content_md || null,
+        loveInterestContent: loveInterestContext?.content_md || null,
+        scenarioContent: scenarioContext?.content_md || null,
       },
       (token) => {
         accumulated += token;
@@ -137,9 +139,9 @@ export function useChatSession(chatId: string | null) {
   const rewriteLastPrompt = async (
     provider: string,
     model: string,
-    personaCharacter: import('../types/index.js').Character | null,
-    loveInterestCharacter: import('../types/index.js').Character | null,
-    scenario: import('../types/index.js').Scenario | null,
+    personaContext: PromptContext,
+    loveInterestContext: PromptContext,
+    scenarioContext: PromptContext,
   ) => {
     if (!chat || streaming) return;
 
@@ -167,9 +169,9 @@ export function useChatSession(chatId: string | null) {
         model,
         messages: history,
         mode: chat.mode,
-        personaContent: personaCharacter?.content_md || null,
-        loveInterestContent: loveInterestCharacter?.content_md || null,
-        scenarioContent: scenario?.content_md || null,
+        personaContent: personaContext?.content_md || null,
+        loveInterestContent: loveInterestContext?.content_md || null,
+        scenarioContent: scenarioContext?.content_md || null,
       },
       (token) => {
         accumulated += token;

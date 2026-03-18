@@ -12,9 +12,9 @@ chatsRouter.get('/', async (req: AuthRequest, res: Response) => {
     .from('chats')
     .select(`
       *,
-      love_interest:characters!chats_character_id_fkey(id, name),
-      persona:characters!chats_persona_character_id_fkey(id, name),
-      scenario:scenarios(id, name),
+      love_interest:characters!chats_character_id_fkey(id, name, content_md),
+      persona:characters!chats_persona_character_id_fkey(id, name, content_md),
+      scenario:scenarios(id, name, content_md),
       messages(content, created_at, role)
     `)
     .eq('user_id', req.userId!)
@@ -40,9 +40,9 @@ chatsRouter.get('/:id', async (req: AuthRequest, res: Response) => {
     .from('chats')
     .select(`
       *,
-      love_interest:characters!chats_character_id_fkey(id, name),
-      persona:characters!chats_persona_character_id_fkey(id, name),
-      scenario:scenarios(id, name),
+      love_interest:characters!chats_character_id_fkey(id, name, content_md),
+      persona:characters!chats_persona_character_id_fkey(id, name, content_md),
+      scenario:scenarios(id, name, content_md),
       messages(*)
     `)
     .eq('id', req.params.id)
