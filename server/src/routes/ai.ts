@@ -3,6 +3,7 @@ import { requireAuth, type AuthRequest } from '../middleware/auth.js';
 import { getProvider, PROVIDER_MODELS } from '../providers/index.js';
 import { supabaseAdmin } from '../lib/supabase-admin.js';
 import type { Response } from 'express';
+import { buildServerSystemPrompt } from '../prompt/system-prompt.js';
 
 export const aiRouter = Router();
 
@@ -15,18 +16,38 @@ aiRouter.get('/models', (_req, res) => {
 
 // POST /api/ai/chat — stream AI response
 aiRouter.post('/chat', async (req: AuthRequest, res: Response) => {
-  const { provider, model, messages, systemPrompt, baseUrl } = req.body as {
+  const {
+    provider,
+    model,
+    messages,
+    systemPrompt,
+    baseUrl,
+    mode,
+    characterContent,
+    scenarioContent,
+  } = req.body as {
     provider: string;
     model: string;
     messages: Array<{ role: 'user' | 'assistant'; content: string }>;
-    systemPrompt: string;
+    systemPrompt?: string;
     baseUrl?: string;
+    mode?: 'long_form' | 'role_play' | 'sexting';
+    characterContent?: string;
+    scenarioContent?: string;
   };
 
-  if (!provider || !model || !messages || !systemPrompt) {
+  if (!provider || !model || !messages) {
     res.status(400).json({ error: 'Missing required fields' });
     return;
   }
+
+  const { prompt: resolvedSystemPrompt, appliedSkills } = await buildServerSystemPrompt({
+    mode,
+    characterContent: characterContent || null,
+    scenarioContent: scenarioContent || null,
+    messages,
+    fallbackSystemPrompt: systemPrompt,
+  });
 
   // Retrieve user API key from DB
   const { data: settings } = await supabaseAdmin
@@ -57,9 +78,13 @@ aiRouter.post('/chat', async (req: AuthRequest, res: Response) => {
 
   try {
     const adapter = getProvider(provider);
+
+    // Expose auto-selected skill metadata to client for observability.
+    res.write(`event: meta\ndata: ${JSON.stringify({ appliedSkills })}\n\n`);
+
     await adapter.stream(
       messages,
-      systemPrompt,
+      resolvedSystemPrompt,
       { apiKey, model, baseUrl: resolvedBaseUrl },
       (token) => send('token', token),
       () => {

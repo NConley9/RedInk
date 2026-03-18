@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { apiFetch } from '../lib/api.js';
 import type { Chat, Message, NewChatConfig } from '../types/index.js';
-import { buildSystemPrompt } from '../lib/promptBuilder.js';
 import { apiStream } from '../lib/api.js';
 
 export function useChats() {
@@ -86,8 +85,6 @@ export function useChatSession(chatId: string | null) {
     setStreamBuffer('');
     let accumulated = '';
 
-    const systemPrompt = buildSystemPrompt(chat.mode, character, scenario);
-
     // Build message history (omit system messages from history array — system prompt is separate)
     const history = updatedMessages
       .filter((m) => m.role !== 'system')
@@ -99,7 +96,9 @@ export function useChatSession(chatId: string | null) {
         provider: chat.model_provider,
         model: chat.model_name,
         messages: history,
-        systemPrompt,
+        mode: chat.mode,
+        characterContent: character?.content_md || null,
+        scenarioContent: scenario?.content_md || null,
       },
       (token) => {
         accumulated += token;
