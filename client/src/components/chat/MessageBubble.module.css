@@ -31,3 +31,19 @@
   border-radius: 14px;
   border: 1px solid var(--border-subtle);
 }
+
+@media (max-width: 767px) {
+  .role {
+    font-size: 0.72rem;
+    margin-bottom: 6px;
+  }
+
+  .content {
+    font-size: 1.03rem;
+    line-height: 1.8;
+  }
+
+  .content p + p {
+    margin-top: 14px;
+  }
+}

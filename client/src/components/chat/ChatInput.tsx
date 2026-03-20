@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import type { Mode } from '../../types/index.js';
 import styles from './ChatInput.module.css';
 
@@ -11,6 +11,14 @@ interface Props {
 export function ChatInput({ mode, disabled, onSend }: Props) {
   const [value, setValue] = useState('');
   const [sending, setSending] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = '0px';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [value]);
 
   const submit = async () => {
     const trimmed = value.trim();
@@ -19,6 +27,9 @@ export function ChatInput({ mode, disabled, onSend }: Props) {
     try {
       await onSend(trimmed);
       setValue('');
+      if (textareaRef.current) {
+        textareaRef.current.style.height = '';
+      }
     } finally {
       setSending(false);
     }
@@ -28,10 +39,12 @@ export function ChatInput({ mode, disabled, onSend }: Props) {
     <div className={styles.wrap}>
       <div className={styles.inner}>
         <textarea
+          ref={textareaRef}
           className={`input ${styles.input}`}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={mode === 'sexting' ? 'Text back...' : 'Write your next message...'}
+          rows={1}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
