@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
 }
 
 .center {
@@ -25,6 +26,15 @@
   margin: 10px 16px 0;
   display: flex;
   justify-content: flex-end;
+  pointer-events: none;
+}
+
+.toolsLauncher {
+  pointer-events: auto;
+}
+
+.toolsLauncherLabel {
+  display: inline-flex;
 }
 
 .toolsModal {
@@ -131,7 +141,20 @@
 
 @media (max-width: 767px) {
   .toolsLauncherWrap {
-    margin: 8px 10px 0;
+    margin: 0;
+    position: absolute;
+    right: 10px;
+    bottom: calc(var(--nav-height) + 96px + env(safe-area-inset-bottom));
+    z-index: 20;
+  }
+
+  .toolsLauncher {
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: 999px;
+    background: rgba(15, 15, 26, 0.92);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
   }
 
   .modalControls {
@@ -143,5 +166,9 @@
   .rewriteSelect {
     min-width: 0;
     width: 100%;
+  }
+
+  .toolsLauncherLabel {
+    font-size: 0.76rem;
   }
 }

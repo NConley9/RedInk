@@ -30,3 +30,13 @@
 .sexting .inner {
   width: min(100%, 420px);
 }
+
+@media (max-width: 767px) {
+  .window {
+    padding: 10px 10px 6px;
+  }
+
+  .inner {
+    gap: 10px;
+  }
+}

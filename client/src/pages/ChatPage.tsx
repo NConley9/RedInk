@@ -217,8 +217,8 @@ export function ChatPage() {
       <ChatWindow messages={messages} mode={chat.mode} streamingText={streamBuffer} />
       {error && <div className={styles.error}>{error}</div>}
       <div className={styles.toolsLauncherWrap}>
-        <button className="btn btn-ghost" onClick={() => setToolsOpen(true)}>
-          Model Tools
+        <button className={`btn btn-ghost ${styles.toolsLauncher}`} onClick={() => setToolsOpen(true)}>
+          <span className={styles.toolsLauncherLabel}>Model Tools</span>
         </button>
       </div>
 

@@ -22,8 +22,22 @@
 }
 
 @media (max-width: 767px) {
+  .wrap {
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+  }
+
   .inner {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
+  }
+
+  .input {
+    min-height: 44px;
+    max-height: 112px;
+  }
+
+  .hint {
+    display: none;
   }
 }
