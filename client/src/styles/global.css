@@ -153,6 +153,7 @@ a:hover { opacity: 0.8; }
 /* Main content area */
 .main-content {
   flex: 1;
+  min-width: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;

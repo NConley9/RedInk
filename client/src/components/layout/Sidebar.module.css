@@ -130,3 +130,9 @@
   font-weight: 500;
   flex-shrink: 0;
 }
+
+@media (max-width: 767px) {
+  .sidebar {
+    display: none;
+  }
+}
