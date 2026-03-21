@@ -6,12 +6,16 @@ import { apiStream } from '../lib/api.js';
 export function useChats() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadChats = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await apiFetch<Chat[]>('/api/chats');
       setChats(data);
+    } catch (e) {
+      setError((e as Error).message || 'Failed to load chats.');
     } finally {
       setLoading(false);
     }
@@ -49,7 +53,7 @@ export function useChats() {
     setChats((prev) => prev.map((c) => (c.id === id ? { ...c, title: updated.title } : c)));
   };
 
-  return { chats, loading, loadChats, createChat, deleteChat, renameChat };
+  return { chats, loading, error, loadChats, createChat, deleteChat, renameChat };
 }
 
 export function useChatSession(chatId: string | null) {

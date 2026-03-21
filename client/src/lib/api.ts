@@ -10,17 +10,22 @@ async function getAuthHeaders(): Promise<HeadersInit> {
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const authHeaders = await getAuthHeaders();
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders,
-      ...(options.headers || {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders,
+        ...(options.headers || {}),
+      },
+    });
+  } catch (e) {
+    throw new Error(`Network error calling ${path}: ${(e as Error).message}`);
+  }
 
   if (!res.ok) {
-    let message = `HTTP ${res.status}`;
+    let message = `HTTP ${res.status} for ${path}`;
     try {
       const body = await res.json() as { error?: string };
       if (body.error) message = body.error;

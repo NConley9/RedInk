@@ -5,7 +5,7 @@ import { NewChatWizard } from '../components/setup/NewChatWizard.js';
 import styles from './HomePage.module.css';
 
 export function HomePage() {
-  const { chats, loadChats, deleteChat } = useChats();
+  const { chats, error, loadChats, deleteChat } = useChats();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const wizardOpen = searchParams.get('new') === '1';
@@ -29,6 +29,14 @@ export function HomePage() {
           <h2>Recent Chats</h2>
           <span className={styles.count}>{chats.length}</span>
         </div>
+
+        {error && (
+          <div className="card" style={{ padding: 12, marginBottom: 12, borderColor: 'rgba(230, 57, 70, 0.35)' }}>
+            <p style={{ margin: 0, color: 'var(--danger)' }}>
+              Failed to load chats: {error}
+            </p>
+          </div>
+        )}
 
         {chats.length === 0 ? (
           <div className={styles.empty}>

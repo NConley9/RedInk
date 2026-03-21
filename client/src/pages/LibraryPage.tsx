@@ -54,6 +54,22 @@ export function LibraryPage() {
         <button className={`btn ${tab === 'scenarios' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('scenarios')}>Scenarios</button>
       </div>
 
+      {charactersState.error && (
+        <div className="card" style={{ padding: 12, marginBottom: 12, borderColor: 'rgba(230, 57, 70, 0.35)' }}>
+          <p style={{ margin: 0, color: 'var(--danger)' }}>
+            Failed to load characters: {charactersState.error}
+          </p>
+        </div>
+      )}
+
+      {scenariosState.error && (
+        <div className="card" style={{ padding: 12, marginBottom: 12, borderColor: 'rgba(230, 57, 70, 0.35)' }}>
+          <p style={{ margin: 0, color: 'var(--danger)' }}>
+            Failed to load scenarios: {scenariosState.error}
+          </p>
+        </div>
+      )}
+
       {tab === 'characters' && (
         <div className={styles.grid}>
           {filteredCharacters.map((character) => (

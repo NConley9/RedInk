@@ -11,10 +11,18 @@ import { imagesRouter } from './routes/images.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
+const configuredOrigins = [
+  process.env.CLIENT_URL,
+  process.env.CLIENT_URLS,
+]
+  .filter(Boolean)
+  .flatMap((value) => String(value).split(',').map((v) => v.trim()).filter(Boolean));
+
+const allowedOrigins = Array.from(new Set([
+  'http://localhost:5173',
   'https://red-ink-client.onrender.com',
-];
+  ...configuredOrigins,
+]));
 
 app.use(cors({
   origin: (origin, cb) => {
