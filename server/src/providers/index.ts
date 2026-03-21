@@ -120,6 +120,22 @@ export const PROVIDER_MODELS: Record<string, ProviderModelOption[]> = {
   ],
   openrouter: [
     {
+      id: 'deepseek/deepseek-v3.2',
+      label: 'DeepSeek v3.2',
+      free: false,
+      recommended_modes: ['long_form', 'role_play'],
+      input_token_soft_limit: 64000,
+      notes: 'Excellent quality for complex scenes and long-form narrative. User favorite.',
+    },
+    {
+      id: 'deepseek/deepseek-v3',
+      label: 'DeepSeek v3',
+      free: false,
+      recommended_modes: ['long_form', 'role_play'],
+      input_token_soft_limit: 64000,
+      notes: 'Strong alternative to v3.2 with similar capabilities.',
+    },
+    {
       id: 'meta-llama/llama-3.3-70b-instruct:free',
       label: 'Llama 3.3 70B (free)',
       free: true,

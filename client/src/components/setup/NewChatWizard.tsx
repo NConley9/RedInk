@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Mode, Character, Scenario, NewChatConfig } from '../../types/index.js';
 import { useCharacters } from '../../hooks/useCharacters.js';
@@ -100,6 +100,22 @@ export function NewChatWizard({ onClose }: Props) {
       setCreating(false);
     }
   };
+
+  // Auto-select DeepSeek v3.2 if available and user reaches model step
+  useEffect(() => {
+    if (step === 'model' && !creating) {
+      const openrouterModels = models.openrouter || [];
+      const deepseekV32 = openrouterModels.find((m) => m.id === 'deepseek/deepseek-v3.2');
+      // Automatically select DeepSeek v3.2 if available
+      if (deepseekV32 && availableProviders.includes('openrouter')) {
+        // Small delay to ensure user sees the option briefly before auto-selecting
+        const timer = setTimeout(() => {
+          void handleModelSelect('openrouter', 'deepseek/deepseek-v3.2');
+        }, 300);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [step, models, availableProviders, creating]);
 
   return (
     <div className="overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>

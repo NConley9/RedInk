@@ -111,6 +111,15 @@ export function ChatPage() {
     [models, activeProvider, chat],
   );
 
+  const estimatedPromptTokens = useMemo(() => {
+    const historyChars = messages.reduce((acc, msg) => acc + msg.content.length, 0);
+    const contextChars =
+      (personaContext?.content_md.length || 0) +
+      (loveInterestContext?.content_md.length || 0) +
+      (scenarioContext?.content_md.length || 0);
+    return Math.ceil((BASE_SYSTEM_PROMPT_CHARS + contextChars + historyChars) / TOKEN_ESTIMATE_DIVISOR);
+  }, [messages, personaContext?.content_md, loveInterestContext?.content_md, scenarioContext?.content_md]);
+
   const rewriteOptions = useMemo(
     () =>
       availableProviders.flatMap((provider) =>
@@ -121,6 +130,12 @@ export function ChatPage() {
             const bRec = (b.recommended_modes || []).includes(chat.mode) ? 1 : 0;
             return bRec - aRec;
           })
+          .filter((model) => {
+            // Filter out models that cannot handle the estimated token count
+            // Models without a limit are assumed capable; keep borderline models (user preference)
+            if (!model.input_token_soft_limit) return true;
+            return estimatedPromptTokens <= model.input_token_soft_limit;
+          })
           .map((model) => ({
           value: `${provider}::${model.id}`,
           label: `${provider} / ${model.label}${chat && (model.recommended_modes || []).includes(chat.mode) ? ' • Recommended' : ''}`,
@@ -128,7 +143,7 @@ export function ChatPage() {
           model,
           })),
       ),
-    [availableProviders, models, chat],
+    [availableProviders, models, chat, estimatedPromptTokens],
   );
 
   const activeProviderRecommendations = useMemo(
@@ -138,15 +153,6 @@ export function ChatPage() {
     },
     [chat, activeProvider, models],
   );
-
-  const estimatedPromptTokens = useMemo(() => {
-    const historyChars = messages.reduce((acc, msg) => acc + msg.content.length, 0);
-    const contextChars =
-      (personaContext?.content_md.length || 0) +
-      (loveInterestContext?.content_md.length || 0) +
-      (scenarioContext?.content_md.length || 0);
-    return Math.ceil((BASE_SYSTEM_PROMPT_CHARS + contextChars + historyChars) / TOKEN_ESTIMATE_DIVISOR);
-  }, [messages, personaContext?.content_md, loveInterestContext?.content_md, scenarioContext?.content_md]);
 
   const activeModelMeta = useMemo(
     () => (models[activeProvider] || []).find((m) => m.id === activeModel) || null,

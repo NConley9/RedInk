@@ -162,6 +162,9 @@ export function useChatSession(chatId: string | null) {
     setStreamBuffer('');
     let accumulated = '';
 
+    // Remove any assistant messages that come after the last user prompt
+    const messagesUpToLastUser = messages.slice(0, absoluteIndex + 1);
+
     await apiStream(
       '/api/ai/chat',
       {
@@ -184,7 +187,8 @@ export function useChatSession(chatId: string | null) {
           method: 'POST',
           body: JSON.stringify({ role: 'assistant', content: accumulated }),
         });
-        setMessages((prev) => [...prev, assistantMsg]);
+        // Replace messages to only include up to last user message, then add new response
+        setMessages(messagesUpToLastUser.concat(assistantMsg));
       },
       (msg) => {
         setStreaming(false);
