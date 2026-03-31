@@ -15,6 +15,12 @@ const supabase = createClient(
 const WORKSPACE = join(__dirname, '..', '..', '..'); // webapp/server/scripts -> workspace root
 const CHARACTERS_DIR = join(WORKSPACE, 'Characters');
 const SCENARIOS_DIR  = join(WORKSPACE, 'Scenarios');
+const PROMPT_FILES = [
+  'instructions-nicks-erotica.md',
+  'skill-dirty-talk.md',
+  'skill-cumshot.md',
+  'prompt-skills-to-perplexity.md',
+].map((fileName) => ({ fileName, path: join(WORKSPACE, fileName) }));
 
 const STOCK_CHARACTER_KEYS = new Set(['kendra', 'tyson', 'nick', 'meganparker']);
 const STOCK_SCENARIO_KEYS = new Set([
@@ -98,6 +104,24 @@ async function seedDirectory(
 
 async function main() {
   console.log('Starting seed...');
+  for (const promptFile of PROMPT_FILES) {
+    try {
+      const content_md = await readFile(promptFile.path, 'utf-8');
+      const { error } = await supabase
+        .from('content_assets')
+        .upsert({
+          key: promptFile.fileName,
+          content_md,
+          source_filename: promptFile.fileName,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) console.error(`  ✗ prompt ${promptFile.fileName}: ${error.message}`);
+      else console.log(`  ✓ prompt ${promptFile.fileName}`);
+    } catch {
+      console.warn(`  ! prompt ${promptFile.fileName} not found, skipping`);
+    }
+  }
   await seedDirectory(CHARACTERS_DIR, 'characters', ['global', 'character']);
   await seedDirectory(SCENARIOS_DIR, 'scenarios', ['global', 'scenario']);
   console.log('\nSeed complete.');

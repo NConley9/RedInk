@@ -70,6 +70,13 @@ export interface UserSettings {
   api_keys_configured: string[];
 }
 
+export interface ContentAssetSummary {
+  key: string;
+  source_filename: string | null;
+  updated_at: string;
+  updated_by: string | null;
+}
+
 export interface NewChatConfig {
   mode: Mode;
   loveInterestCharacter: Character;

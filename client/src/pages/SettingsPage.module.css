@@ -118,6 +118,53 @@
   flex-wrap: wrap;
 }
 
+.uploadIntro {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+}
+
+.uploadGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.uploadStatus {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-active);
+  background: var(--accent-subtle);
+  color: var(--text-primary);
+}
+
+.assetList {
+  display: grid;
+  gap: 10px;
+}
+
+.assetRow {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.smallNote {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.smallError {
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
 .modelChip {
   padding: 4px 10px;
   border-radius: 100px;
@@ -132,6 +179,10 @@
   }
 
   .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .uploadGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 }

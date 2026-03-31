@@ -7,6 +7,7 @@ import { scenariosRouter } from './routes/scenarios.js';
 import { chatsRouter } from './routes/chats.js';
 import { settingsRouter } from './routes/settings.js';
 import { imagesRouter } from './routes/images.js';
+import { contentRouter } from './routes/content.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -46,6 +47,7 @@ app.use('/api/scenarios', scenariosRouter);
 app.use('/api/chats', chatsRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/images', imagesRouter);
+app.use('/api/content', contentRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
