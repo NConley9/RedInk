@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { CharacterCard } from '../components/library/CharacterCard.js';
 import { ScenarioCard } from '../components/library/ScenarioCard.js';
 import { EditorModal } from '../components/library/EditorModal.js';
+import { TextImportModal } from '../components/library/TextImportModal.js';
 import { useCharacters } from '../hooks/useCharacters.js';
 import { useScenarios } from '../hooks/useScenarios.js';
 import type { Character, Scenario } from '../types/index.js';
@@ -14,6 +15,9 @@ export function LibraryPage() {
   const [query, setQuery] = useState('');
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(null);
   const [editingScenario, setEditingScenario] = useState<Scenario | null>(null);
+  const [importingCharacter, setImportingCharacter] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
+  const [generatingCharacterId, setGeneratingCharacterId] = useState<string | null>(null);
 
   const charactersState = useCharacters();
   const scenariosState = useScenarios();
@@ -43,6 +47,23 @@ export function LibraryPage() {
         </div>
         <div className={styles.actions}>
           <input className="input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search library..." />
+          {tab === 'characters' && <button className="btn btn-secondary" onClick={() => setImportingCharacter(true)}>Create From Text</button>}
+          {tab === 'characters' && (
+            <button
+              className="btn btn-ghost"
+              disabled={backfilling}
+              onClick={async () => {
+                setBackfilling(true);
+                try {
+                  await charactersState.backfillLayers({ onlyMissing: true, limit: 25 });
+                } finally {
+                  setBackfilling(false);
+                }
+              }}
+            >
+              {backfilling ? 'Converting…' : 'Convert Existing'}
+            </button>
+          )}
           <button className="btn btn-primary" onClick={() => tab === 'characters' ? setEditingCharacter({} as Character) : setEditingScenario({} as Scenario)}>
             Add {tab === 'characters' ? 'Character' : 'Scenario'}
           </button>
@@ -76,6 +97,15 @@ export function LibraryPage() {
             <CharacterCard
               key={character.id}
               character={character}
+              onGenerateLayers={!character.is_global ? async () => {
+                setGeneratingCharacterId(character.id);
+                try {
+                  await charactersState.generateLayers(character.id);
+                } finally {
+                  setGeneratingCharacterId(null);
+                }
+              } : undefined}
+              generatingLayers={generatingCharacterId === character.id}
               onEdit={!character.is_global ? () => setEditingCharacter(character) : undefined}
               onDelete={!character.is_global ? () => void charactersState.remove(character.id) : undefined}
             />
@@ -116,6 +146,15 @@ export function LibraryPage() {
           onSave={async (payload) => {
             if (editingScenario.id) await scenariosState.update(editingScenario.id, payload);
             else await scenariosState.create(payload.name, payload.content_md, payload.tags);
+          }}
+        />
+      )}
+
+      {importingCharacter && (
+        <TextImportModal
+          onClose={() => setImportingCharacter(false)}
+          onSubmit={async ({ sourceText, generateLayers }) => {
+            await charactersState.createFromText(sourceText, generateLayers);
           }}
         />
       )}

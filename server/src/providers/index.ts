@@ -4,7 +4,7 @@ import { mistralAdapter } from './mistral.js';
 import { openaiCompatAdapter } from './openai-compat.js';
 import type { ProviderAdapter } from './types.js';
 
-type Mode = 'long_form' | 'role_play' | 'sexting';
+type Mode = 'long_form' | 'role_play' | 'sexting' | 'texting';
 
 export type ProviderModelOption = {
   id: string;
@@ -35,7 +35,7 @@ export const PROVIDER_MODELS: Record<string, ProviderModelOption[]> = {
       id: 'gemini-2.0-flash',
       label: 'Gemini 2.0 Flash',
       free: true,
-      recommended_modes: ['role_play', 'sexting'],
+      recommended_modes: ['role_play', 'sexting', 'texting'],
       input_token_soft_limit: 24000,
       notes: 'Fast and balanced for conversational scenes.',
     },
@@ -43,7 +43,7 @@ export const PROVIDER_MODELS: Record<string, ProviderModelOption[]> = {
       id: 'gemini-2.0-flash-lite',
       label: 'Gemini 2.0 Flash Lite',
       free: true,
-      recommended_modes: ['sexting'],
+      recommended_modes: ['sexting', 'texting'],
       input_token_soft_limit: 16000,
       notes: 'Lower cost and latency, better for shorter turns.',
     },
@@ -51,7 +51,7 @@ export const PROVIDER_MODELS: Record<string, ProviderModelOption[]> = {
       id: 'gemini-1.5-flash',
       label: 'Gemini 1.5 Flash',
       free: true,
-      recommended_modes: ['role_play'],
+      recommended_modes: ['role_play', 'texting'],
       input_token_soft_limit: 22000,
       notes: 'Stable compatibility option for broad Gemini availability.',
     },
@@ -69,7 +69,7 @@ export const PROVIDER_MODELS: Record<string, ProviderModelOption[]> = {
       id: 'llama-3.1-8b-instant',
       label: 'Llama 3.1 8B Instant (Groq)',
       free: true,
-      recommended_modes: ['sexting'],
+      recommended_modes: ['sexting', 'texting'],
       input_token_soft_limit: 10000,
       notes: 'Very fast for short interactive turns.',
     },
@@ -87,7 +87,7 @@ export const PROVIDER_MODELS: Record<string, ProviderModelOption[]> = {
       id: 'mistral-small-latest',
       label: 'Mistral Small',
       free: true,
-      recommended_modes: ['role_play', 'sexting'],
+      recommended_modes: ['role_play', 'sexting', 'texting'],
       input_token_soft_limit: 20000,
       notes: 'Reliable default for mixed workloads.',
     },
@@ -113,7 +113,7 @@ export const PROVIDER_MODELS: Record<string, ProviderModelOption[]> = {
       id: 'local-model',
       label: 'Local Model (auto-detect)',
       free: true,
-      recommended_modes: ['long_form', 'role_play', 'sexting'],
+      recommended_modes: ['long_form', 'role_play', 'sexting', 'texting'],
       input_token_soft_limit: 48000,
       notes: 'Depends on your local model and hardware limits.',
     },
@@ -147,7 +147,7 @@ export const PROVIDER_MODELS: Record<string, ProviderModelOption[]> = {
       id: 'mistralai/mistral-7b-instruct:free',
       label: 'Mistral 7B (free)',
       free: true,
-      recommended_modes: ['sexting'],
+      recommended_modes: ['sexting', 'texting'],
       input_token_soft_limit: 12000,
       notes: 'Better for concise exchanges than heavy context.',
     },

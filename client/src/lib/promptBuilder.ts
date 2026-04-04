@@ -24,6 +24,13 @@ First-person text-message roleplay.
 - Never respond as the user. Never break character. Start immediately with character's voice.
 - For explicit visuals: use the format [📷 ATTACHMENT: *detailed sensory-rich prose description*]
   The client will detect this pattern and attempt to generate an image.`,
+
+  texting: `## Current Mode: Texting
+Casual text-message conversation.
+- Brief, natural message-style responses.
+- Stay tightly in character. Prioritize voice, cadence, and personality over exposition.
+- Non-sexual by default, but follow the user's lead naturally.
+- No assistant tone, no prose scene-setting, no summaries.`,
 };
 
 const BASE_INSTRUCTIONS = `# Identity

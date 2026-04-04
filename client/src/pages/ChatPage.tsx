@@ -12,6 +12,14 @@ import styles from './ChatPage.module.css';
 const BASE_SYSTEM_PROMPT_CHARS = 6000;
 const TOKEN_ESTIMATE_DIVISOR = 4;
 
+function estimateCharacterContextChars(context: {
+  content_md?: string;
+  voice_card_yaml?: string | null;
+} | null): number {
+  if (!context) return 0;
+  return context.voice_card_yaml?.length || context.content_md?.length || 0;
+}
+
 export function ChatPage() {
   const { chatId } = useParams();
   const { chat, messages, streaming, streamBuffer, error, loadChat, sendMessage, updateChatModel, rewriteLastPrompt } = useChatSession(chatId || null);
@@ -46,13 +54,23 @@ export function ChatPage() {
   );
 
   const personaContext = useMemo(
-    () => selectedPersona || (chat?.persona?.content_md ? { content_md: chat.persona.content_md } : null),
-    [selectedPersona, chat?.persona?.content_md],
+    () => selectedPersona || (chat?.persona ? {
+      name: chat.persona.name,
+      content_md: chat.persona.content_md,
+      voice_card_yaml: chat.persona.voice_card_yaml,
+      reference_chunks: chat.persona.reference_chunks,
+    } : null),
+    [selectedPersona, chat?.persona],
   );
 
   const loveInterestContext = useMemo(
-    () => selectedLoveInterest || (chat?.love_interest?.content_md ? { content_md: chat.love_interest.content_md } : null),
-    [selectedLoveInterest, chat?.love_interest?.content_md],
+    () => selectedLoveInterest || (chat?.love_interest ? {
+      name: chat.love_interest.name,
+      content_md: chat.love_interest.content_md,
+      voice_card_yaml: chat.love_interest.voice_card_yaml,
+      reference_chunks: chat.love_interest.reference_chunks,
+    } : null),
+    [selectedLoveInterest, chat?.love_interest],
   );
 
   const scenarioContext = useMemo(
@@ -86,7 +104,9 @@ export function ChatPage() {
       ? ` with love interest ${loveInterestName}`
       : '';
     const scenarioClause = scenarioName ? ` in scenario ${scenarioName}` : '';
-    const starterPrompt = `Let's start a ${modeLabel} story${personaClause}${loveInterestClause}${scenarioClause}.`;
+    const starterPrompt = chat.mode === 'texting'
+      ? `Start a casual text conversation${loveInterestName ? ` as ${loveInterestName}` : ''}${personaClause}${scenarioClause}.`
+      : `Let's start a ${modeLabel} story${personaClause}${loveInterestClause}${scenarioClause}.`;
 
     autoStartedChatIds.current.add(chat.id);
     void sendMessage(starterPrompt, personaContext, loveInterestContext, scenarioContext);
@@ -114,11 +134,11 @@ export function ChatPage() {
   const estimatedPromptTokens = useMemo(() => {
     const historyChars = messages.reduce((acc, msg) => acc + msg.content.length, 0);
     const contextChars =
-      (personaContext?.content_md.length || 0) +
-      (loveInterestContext?.content_md.length || 0) +
+      estimateCharacterContextChars(personaContext) +
+      estimateCharacterContextChars(loveInterestContext) +
       (scenarioContext?.content_md.length || 0);
     return Math.ceil((BASE_SYSTEM_PROMPT_CHARS + contextChars + historyChars) / TOKEN_ESTIMATE_DIVISOR);
-  }, [messages, personaContext?.content_md, loveInterestContext?.content_md, scenarioContext?.content_md]);
+  }, [messages, personaContext, loveInterestContext, scenarioContext?.content_md]);
 
   const rewriteOptions = useMemo(
     () =>

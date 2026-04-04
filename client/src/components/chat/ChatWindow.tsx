@@ -17,7 +17,7 @@ export function ChatWindow({ messages, mode, streamingText }: Props) {
   }, [messages, streamingText]);
 
   return (
-    <div className={`${styles.window} ${mode === 'sexting' ? styles.sexting : ''}`}>
+    <div className={`${styles.window} ${mode === 'sexting' || mode === 'texting' ? styles.sexting : ''}`}>
       <div className={styles.inner}>
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} mode={mode} />

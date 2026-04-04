@@ -41,6 +41,9 @@ export function selectRelevantSkills(params: {
   cumshotSkill: string;
 }): SelectedSkill[] {
   const mode = params.mode || '';
+  if (mode === 'texting') {
+    return [];
+  }
   const lastMessages = params.messages.slice(-6).map((m) => m.content).join('\n');
   const scenario = params.scenarioContent || '';
   const combined = `${lastMessages}\n${scenario}`;

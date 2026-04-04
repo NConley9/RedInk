@@ -28,7 +28,9 @@
 
 .global,
 .custom,
-.stock {
+.stock,
+.layered,
+.unlayered {
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -49,6 +51,16 @@
 .custom {
   background: var(--accent-subtle);
   color: var(--accent);
+}
+
+.layered {
+  background: rgba(76, 175, 80, 0.14);
+  color: #9ae6a0;
+}
+
+.unlayered {
+  background: rgba(255, 193, 7, 0.14);
+  color: #ffd666;
 }
 
 .actions {

@@ -5,6 +5,7 @@ import { supabaseAdmin } from '../lib/supabase-admin.js';
 import type { Response } from 'express';
 import { buildServerSystemPrompt } from '../prompt/system-prompt.js';
 import { discoverModelsFromApiKeys, mergeDiscoveredModels } from '../providers/discovery.js';
+import type { PromptCharacterContext, ReferenceChunk } from '../prompt/types.js';
 
 export const aiRouter = Router();
 
@@ -33,9 +34,10 @@ aiRouter.post('/chat', async (req: AuthRequest, res: Response) => {
     messages,
     systemPrompt,
     baseUrl,
+    chatId,
     mode,
-    personaContent,
-    loveInterestContent,
+    personaCharacter,
+    loveInterestCharacter,
     characterContent,
     scenarioContent,
   } = req.body as {
@@ -44,9 +46,10 @@ aiRouter.post('/chat', async (req: AuthRequest, res: Response) => {
     messages: Array<{ role: 'user' | 'assistant'; content: string }>;
     systemPrompt?: string;
     baseUrl?: string;
-    mode?: 'long_form' | 'role_play' | 'sexting';
-    personaContent?: string;
-    loveInterestContent?: string;
+    chatId?: string;
+    mode?: 'long_form' | 'role_play' | 'sexting' | 'texting';
+    personaCharacter?: PromptCharacterContext | null;
+    loveInterestCharacter?: PromptCharacterContext | null;
     characterContent?: string;
     scenarioContent?: string;
   };
@@ -56,11 +59,26 @@ aiRouter.post('/chat', async (req: AuthRequest, res: Response) => {
     return;
   }
 
+  let memoryChunks: ReferenceChunk[] = [];
+  if (chatId) {
+    const { data: chatData } = await supabaseAdmin
+      .from('chats')
+      .select('memory_chunks')
+      .eq('id', chatId)
+      .eq('user_id', req.userId!)
+      .single();
+
+    memoryChunks = Array.isArray(chatData?.memory_chunks) ? chatData.memory_chunks as ReferenceChunk[] : [];
+  }
+
   const { prompt: resolvedSystemPrompt, appliedSkills } = await buildServerSystemPrompt({
     mode,
-    personaContent: personaContent || null,
-    loveInterestContent: loveInterestContent || characterContent || null,
+    personaCharacter: personaCharacter || null,
+    loveInterestCharacter: loveInterestCharacter || (characterContent
+      ? { name: 'Character', content_md: characterContent, reference_chunks: [], voice_card_yaml: null }
+      : null),
     scenarioContent: scenarioContent || null,
+    memoryChunks,
     messages,
     fallbackSystemPrompt: systemPrompt,
   });

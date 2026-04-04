@@ -7,7 +7,7 @@ export function MessageBubble({ message, mode }: { message: Message; mode: Mode 
   const cls = message.role === 'user' ? 'message-user' : 'message-assistant';
 
   return (
-    <div className={`${styles.wrapper} ${mode === 'sexting' ? 'mode-sexting' : ''}`}>
+    <div className={`${styles.wrapper} ${mode === 'sexting' || mode === 'texting' ? 'mode-sexting' : ''}`}>
       <div className={cls}>
         <div className={styles.role}>{message.role === 'user' ? 'You' : 'AI'}</div>
         <div className={styles.content}>

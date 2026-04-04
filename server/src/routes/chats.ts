@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth, type AuthRequest } from '../middleware/auth.js';
 import { supabaseAdmin } from '../lib/supabase-admin.js';
 import type { Response } from 'express';
+import { maybeRefreshChatMemoryChunks } from '../prompt/memory.js';
 
 export const chatsRouter = Router();
 chatsRouter.use(requireAuth);
@@ -12,8 +13,8 @@ chatsRouter.get('/', async (req: AuthRequest, res: Response) => {
     .from('chats')
     .select(`
       *,
-      love_interest:characters!chats_character_id_fkey(id, name, content_md),
-      persona:characters!chats_persona_character_id_fkey(id, name, content_md),
+      love_interest:characters!chats_character_id_fkey(id, name, content_md, voice_card_yaml, reference_chunks),
+      persona:characters!chats_persona_character_id_fkey(id, name, content_md, voice_card_yaml, reference_chunks),
       scenario:scenarios(id, name, content_md),
       messages(content, created_at, role)
     `)
@@ -40,8 +41,8 @@ chatsRouter.get('/:id', async (req: AuthRequest, res: Response) => {
     .from('chats')
     .select(`
       *,
-      love_interest:characters!chats_character_id_fkey(id, name, content_md),
-      persona:characters!chats_persona_character_id_fkey(id, name, content_md),
+      love_interest:characters!chats_character_id_fkey(id, name, content_md, voice_card_yaml, reference_chunks),
+      persona:characters!chats_persona_character_id_fkey(id, name, content_md, voice_card_yaml, reference_chunks),
       scenario:scenarios(id, name, content_md),
       messages(*)
     `)
@@ -124,7 +125,7 @@ chatsRouter.post('/:id/messages', async (req: AuthRequest, res: Response) => {
   // Verify ownership
   const { data: chat } = await supabaseAdmin
     .from('chats')
-    .select('id')
+    .select('id, model_provider, model_name')
     .eq('id', req.params.id)
     .eq('user_id', req.userId!)
     .single();
@@ -144,6 +145,15 @@ chatsRouter.post('/:id/messages', async (req: AuthRequest, res: Response) => {
     .from('chats')
     .update({ updated_at: new Date().toISOString() })
     .eq('id', req.params.id);
+
+  if (role === 'assistant') {
+    void maybeRefreshChatMemoryChunks({
+      chatId: String(req.params.id),
+      userId: req.userId!,
+      provider: chat.model_provider,
+      model: chat.model_name,
+    });
+  }
 
   res.status(201).json(data);
 });

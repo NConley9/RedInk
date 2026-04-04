@@ -43,7 +43,7 @@ export function ChatInput({ mode, disabled, onSend }: Props) {
           className={`input ${styles.input}`}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder={mode === 'sexting' ? 'Text back...' : 'Write your next message...'}
+          placeholder={mode === 'sexting' ? 'Text back...' : mode === 'texting' ? 'Text them...' : 'Write your next message...'}
           rows={1}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -58,7 +58,11 @@ export function ChatInput({ mode, disabled, onSend }: Props) {
         </button>
       </div>
       <div className={styles.hint}>
-        {mode === 'sexting' ? 'Short, text-style prompts work best.' : 'Press Enter to send. Shift+Enter for a new line.'}
+        {mode === 'sexting'
+          ? 'Short, text-style prompts work best.'
+          : mode === 'texting'
+          ? "Talk naturally. They'll respond in character."
+          : 'Press Enter to send. Shift+Enter for a new line.'}
       </div>
     </div>
   );

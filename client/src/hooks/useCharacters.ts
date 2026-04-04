@@ -2,6 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '../lib/api.js';
 import type { Character } from '../types/index.js';
 
+type BackfillResponse = {
+  processed: number;
+  converted: number;
+  failures: Array<{ id: string; name: string; error: string }>;
+};
+
 export function useCharacters() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,5 +50,32 @@ export function useCharacters() {
     setCharacters((prev) => prev.filter((x) => x.id !== id));
   };
 
-  return { characters, loading, error, reload: load, create, update, remove };
+  const createFromText = async (sourceText: string, generateLayers = true) => {
+    const c = await apiFetch<Character>('/api/characters/from-text', {
+      method: 'POST',
+      body: JSON.stringify({ sourceText, generateLayers }),
+    });
+    setCharacters((prev) => [c, ...prev]);
+    return c;
+  };
+
+  const generateLayers = async (id: string) => {
+    const c = await apiFetch<Character>(`/api/characters/${id}/generate-layers`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+    setCharacters((prev) => prev.map((x) => (x.id === id ? c : x)));
+    return c;
+  };
+
+  const backfillLayers = async (options: { limit?: number; includeStock?: boolean; onlyMissing?: boolean } = {}) => {
+    const result = await apiFetch<BackfillResponse>('/api/characters/backfill-layers', {
+      method: 'POST',
+      body: JSON.stringify(options),
+    });
+    await load();
+    return result;
+  };
+
+  return { characters, loading, error, reload: load, create, update, remove, createFromText, generateLayers, backfillLayers };
 }

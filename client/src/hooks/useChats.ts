@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { apiFetch } from '../lib/api.js';
-import type { Chat, Message, NewChatConfig } from '../types/index.js';
+import type { Chat, Character, Message, NewChatConfig } from '../types/index.js';
 import { apiStream } from '../lib/api.js';
 
 export function useChats() {
@@ -63,7 +63,13 @@ export function useChatSession(chatId: string | null) {
   const [streamBuffer, setStreamBuffer] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  type PromptContext = { content_md: string } | null;
+  type PromptContext = {
+    name: string;
+    content_md?: string;
+    voice_card_yaml?: string | null;
+    reference_chunks?: Character['reference_chunks'];
+  } | null;
+  type ScenarioContext = { content_md: string } | null;
 
   const loadChat = useCallback(async (id: string) => {
     const data = await apiFetch<Chat>(`/api/chats/${id}`);
@@ -75,7 +81,7 @@ export function useChatSession(chatId: string | null) {
     content: string,
     personaContext: PromptContext,
     loveInterestContext: PromptContext,
-    scenarioContext: PromptContext,
+    scenarioContext: ScenarioContext,
   ) => {
     if (!chat || streaming) return;
 
@@ -103,10 +109,11 @@ export function useChatSession(chatId: string | null) {
       {
         provider: chat.model_provider,
         model: chat.model_name,
+        chatId: chat.id,
         messages: history,
         mode: chat.mode,
-        personaContent: personaContext?.content_md || null,
-        loveInterestContent: loveInterestContext?.content_md || null,
+        personaCharacter: personaContext,
+        loveInterestCharacter: loveInterestContext,
         scenarioContent: scenarioContext?.content_md || null,
       },
       (token) => {
@@ -145,7 +152,7 @@ export function useChatSession(chatId: string | null) {
     model: string,
     personaContext: PromptContext,
     loveInterestContext: PromptContext,
-    scenarioContext: PromptContext,
+    scenarioContext: ScenarioContext,
   ) => {
     if (!chat || streaming) return;
 
@@ -174,10 +181,11 @@ export function useChatSession(chatId: string | null) {
       {
         provider,
         model,
+        chatId: chat.id,
         messages: history,
         mode: chat.mode,
-        personaContent: personaContext?.content_md || null,
-        loveInterestContent: loveInterestContext?.content_md || null,
+        personaCharacter: personaContext,
+        loveInterestCharacter: loveInterestContext,
         scenarioContent: scenarioContext?.content_md || null,
       },
       (token) => {

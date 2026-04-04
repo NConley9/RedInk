@@ -1,10 +1,18 @@
-export type Mode = 'long_form' | 'role_play' | 'sexting';
+export type Mode = 'long_form' | 'role_play' | 'sexting' | 'texting';
+
+export interface ReferenceChunk {
+  id: string;
+  triggers: string[];
+  content: string;
+}
 
 export interface Character {
   id: string;
   user_id: string | null;
   name: string;
   content_md: string;
+  voice_card_yaml?: string | null;
+  reference_chunks?: ReferenceChunk[];
   tags: string[];
   is_global: boolean;
   is_stock?: boolean;
@@ -44,10 +52,12 @@ export interface Chat {
   scenario_id: string | null;
   model_provider: string;
   model_name: string;
+  memory_chunks?: ReferenceChunk[];
+  memory_cursor_message_count?: number;
   created_at: string;
   updated_at: string;
-  love_interest?: (Pick<Character, 'id' | 'name'> & { content_md?: string }) | null;
-  persona?: (Pick<Character, 'id' | 'name'> & { content_md?: string }) | null;
+  love_interest?: (Pick<Character, 'id' | 'name'> & { content_md?: string; voice_card_yaml?: string | null; reference_chunks?: ReferenceChunk[] }) | null;
+  persona?: (Pick<Character, 'id' | 'name'> & { content_md?: string; voice_card_yaml?: string | null; reference_chunks?: ReferenceChunk[] }) | null;
   scenario?: (Pick<Scenario, 'id' | 'name'> & { content_md?: string }) | null;
   last_message?: { content: string; role: string } | null;
   messages?: Message[];

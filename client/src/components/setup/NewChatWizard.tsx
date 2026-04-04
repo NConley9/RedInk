@@ -13,6 +13,7 @@ const MODE_OPTIONS: Array<{ id: Mode; label: string; description: string; icon: 
   { id: 'long_form', label: 'Long Form', description: 'Full chapters, extended narrative, cinematic storytelling', icon: '📖' },
   { id: 'role_play', label: 'Role Play', description: 'Collaborative back-and-forth, immersive scenes', icon: '🎭' },
   { id: 'sexting', label: 'Sexting', description: 'First-person text-style with image generation', icon: '💬' },
+  { id: 'texting', label: 'Texting', description: 'In-character text conversation, natural voice', icon: '📱' },
 ];
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -50,8 +51,8 @@ export function NewChatWizard({ onClose }: Props) {
 
   const estimatedInitialPromptTokens = Math.ceil((
     6000 +
-    (config.personaCharacter?.content_md.length || 0) +
-    (config.loveInterestCharacter?.content_md.length || 0) +
+    (config.personaCharacter?.voice_card_yaml?.length || config.personaCharacter?.content_md.length || 0) +
+    (config.loveInterestCharacter?.voice_card_yaml?.length || config.loveInterestCharacter?.content_md.length || 0) +
     (config.scenario?.content_md.length || 0) +
     600
   ) / 4);
@@ -119,7 +120,7 @@ export function NewChatWizard({ onClose }: Props) {
 
   return (
     <div className="overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal">
+      <div className={`modal ${styles.modal}`}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.stepIndicator}>
@@ -180,6 +181,7 @@ export function NewChatWizard({ onClose }: Props) {
                         <p className="text-muted truncate" style={{ fontSize: '0.78rem', marginTop: 2, maxWidth: 220 }}>
                           {c.content_md.slice(0, 80)}...
                         </p>
+                        {!c.voice_card_yaml && <span className={styles.riskBadge}>No layers</span>}
                       </div>
                     </div>
                   </button>
@@ -211,6 +213,7 @@ export function NewChatWizard({ onClose }: Props) {
                         <p className="text-muted truncate" style={{ fontSize: '0.78rem', marginTop: 2, maxWidth: 220 }}>
                           {c.content_md.slice(0, 80)}...
                         </p>
+                        {!c.voice_card_yaml && <span className={styles.riskBadge}>No layers</span>}
                       </div>
                     </div>
                   </button>
