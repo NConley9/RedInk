@@ -56,6 +56,54 @@ export function resolveGenerationConfig(params: {
   throw new Error('No configured model is available for layer generation. Add an API key or configure LM Studio.');
 }
 
+export function resolveGenerationConfigs(params: {
+  apiKeys: Record<string, string>;
+  lmstudioBaseUrl?: string | null;
+  provider?: string | null;
+  model?: string | null;
+  baseUrl?: string | null;
+}): ResolvedGenerationConfig[] {
+  const preferredProvider = params.provider?.trim();
+  const preferredModel = params.model?.trim();
+
+  if (preferredProvider && preferredModel) {
+    return [resolveGenerationConfig(params)];
+  }
+
+  const configs: ResolvedGenerationConfig[] = [];
+
+  for (const candidate of DEFAULT_MODEL_CANDIDATES) {
+    if (candidate.provider === 'lmstudio' && params.lmstudioBaseUrl) {
+      configs.push({ provider: candidate.provider, model: candidate.model, baseUrl: params.lmstudioBaseUrl });
+      continue;
+    }
+
+    if (params.apiKeys[candidate.provider]) {
+      configs.push({
+        provider: candidate.provider,
+        model: candidate.model,
+        apiKey: params.apiKeys[candidate.provider],
+        baseUrl: candidate.provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : undefined,
+      });
+    }
+  }
+
+  if (configs.length === 0) {
+    throw new Error('No configured model is available for layer generation. Add an API key or configure LM Studio.');
+  }
+
+  return configs;
+}
+
+function isRetryableGenerationError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+  return message.includes('429')
+    || message.includes('quota')
+    || message.includes('rate limit')
+    || message.includes('rate-limit')
+    || message.includes('resource exhausted');
+}
+
 export async function runTextGeneration(params: {
   systemPrompt: string;
   userPrompt: string;
@@ -85,6 +133,48 @@ export async function runTextGeneration(params: {
   });
 
   return output.trim();
+}
+
+export async function runTextGenerationWithFallback(params: {
+  systemPrompt: string;
+  userPrompt: string;
+  configs: ResolvedGenerationConfig[];
+}): Promise<{ text: string; provider: string; model: string }> {
+  const failures: string[] = [];
+  let exhaustedRetryableProviders = 0;
+
+  for (let index = 0; index < params.configs.length; index += 1) {
+    const config = params.configs[index];
+    try {
+      const text = await runTextGeneration({
+        systemPrompt: params.systemPrompt,
+        userPrompt: params.userPrompt,
+        provider: config.provider,
+        model: config.model,
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl,
+      });
+      return { text, provider: config.provider, model: config.model };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      failures.push(`${config.provider}/${config.model}: ${message}`);
+      const retryable = isRetryableGenerationError(error);
+
+      if (retryable) {
+        exhaustedRetryableProviders += 1;
+      }
+
+      if (!retryable || index === params.configs.length - 1) {
+        if (exhaustedRetryableProviders === params.configs.length) {
+          throw new Error(`All configured generation providers are currently rate-limited or out of quota. Add another provider key or configure LM Studio, then try again. Details: ${failures.join(' | ')}`);
+        }
+
+        throw new Error(failures.join(' | '));
+      }
+    }
+  }
+
+  throw new Error('No configured model is available for layer generation.');
 }
 
 export function parseJsonPayload<T>(text: string): T {

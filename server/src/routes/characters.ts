@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { requireAuth, type AuthRequest } from '../middleware/auth.js';
 import { supabaseAdmin } from '../lib/supabase-admin.js';
 import type { Response } from 'express';
-import { parseJsonPayload, resolveGenerationConfig, runTextGeneration } from '../prompt/llm-utils.js';
+import { parseJsonPayload, resolveGenerationConfigs, runTextGenerationWithFallback } from '../prompt/llm-utils.js';
 import { buildCharacterFromTextPrompt, buildGenerateLayersPrompt, GENERATION_SYSTEM_PROMPT } from '../prompt/voice-card-prompt.js';
 import type { ReferenceChunk } from '../prompt/types.js';
 
@@ -41,19 +41,16 @@ async function generateLayersForContent(params: {
   model?: string | null;
 }): Promise<{ voice_card_yaml: string; reference_chunks: ReferenceChunk[] }> {
   const settings = await getGenerationSettings(params.userId);
-  const config = resolveGenerationConfig({
+  const configs = resolveGenerationConfigs({
     ...settings,
     provider: params.provider,
     model: params.model,
   });
 
-  const payload = await runTextGeneration({
+  const { text: payload } = await runTextGenerationWithFallback({
     systemPrompt: GENERATION_SYSTEM_PROMPT,
     userPrompt: buildGenerateLayersPrompt(params.content),
-    provider: config.provider,
-    model: config.model,
-    apiKey: config.apiKey,
-    baseUrl: config.baseUrl,
+    configs,
   });
 
   const parsed = parseJsonPayload<{ voice_card_yaml?: string; reference_chunks?: ReferenceChunk[] }>(payload);
@@ -104,19 +101,16 @@ charactersRouter.post('/from-text', async (req: AuthRequest, res: Response) => {
   }
 
   const settings = await getGenerationSettings(req.userId!);
-  const config = resolveGenerationConfig({
+  const configs = resolveGenerationConfigs({
     ...settings,
     provider,
     model,
   });
 
-  const payload = await runTextGeneration({
+  const { text: payload } = await runTextGenerationWithFallback({
     systemPrompt: GENERATION_SYSTEM_PROMPT,
     userPrompt: buildCharacterFromTextPrompt(sourceText),
-    provider: config.provider,
-    model: config.model,
-    apiKey: config.apiKey,
-    baseUrl: config.baseUrl,
+    configs,
   });
 
   const parsed = parseJsonPayload<{

@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '../lib/supabase-admin.js';
 import { buildMemoryChunkPrompt, GENERATION_SYSTEM_PROMPT } from './voice-card-prompt.js';
-import { parseJsonPayload, resolveGenerationConfig, runTextGeneration } from './llm-utils.js';
+import { parseJsonPayload, resolveGenerationConfigs, runTextGenerationWithFallback } from './llm-utils.js';
 import type { ReferenceChunk } from './types.js';
 
 function normalizeChunks(chunks: unknown): ReferenceChunk[] {
@@ -70,9 +70,9 @@ export async function maybeRefreshChatMemoryChunks(params: {
   const existingMemoryChunks = normalizeChunks(chat.memory_chunks);
   const apiKeys = (settings?.api_keys as Record<string, string>) || {};
 
-  let config;
+  let configs;
   try {
-    config = resolveGenerationConfig({
+    configs = resolveGenerationConfigs({
       apiKeys,
       lmstudioBaseUrl: settings?.lmstudio_base_url as string | null | undefined,
       provider: params.provider || chat.model_provider,
@@ -82,16 +82,13 @@ export async function maybeRefreshChatMemoryChunks(params: {
     return;
   }
 
-  const payload = await runTextGeneration({
+  const { text: payload } = await runTextGenerationWithFallback({
     systemPrompt: GENERATION_SYSTEM_PROMPT,
     userPrompt: buildMemoryChunkPrompt(
       recentMessages.map((message) => `${message.role}: ${message.content}`).join('\n'),
       JSON.stringify(existingMemoryChunks, null, 2),
     ),
-    provider: config.provider,
-    model: config.model,
-    apiKey: config.apiKey,
-    baseUrl: config.baseUrl,
+    configs,
   });
 
   const parsed = parseJsonPayload<{ memory_chunks?: ReferenceChunk[] }>(payload);
