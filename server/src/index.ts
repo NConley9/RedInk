@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import { aiRouter } from './routes/ai.js';
 import { charactersRouter } from './routes/characters.js';
@@ -48,6 +49,19 @@ app.use('/api/chats', chatsRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/images', imagesRouter);
 app.use('/api/content', contentRouter);
+
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  const message = err instanceof Error ? err.message : 'Internal server error';
+  const status = typeof err === 'object' && err !== null && 'status' in err && typeof (err as { status?: unknown }).status === 'number'
+    ? (err as { status: number }).status
+    : 500;
+
+  if (status >= 500) {
+    console.error(err);
+  }
+
+  res.status(status).json({ error: message });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

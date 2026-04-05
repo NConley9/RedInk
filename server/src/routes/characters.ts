@@ -153,12 +153,42 @@ charactersRouter.post('/from-text', async (req: AuthRequest, res: Response) => {
 
 // POST /api/characters — create user character
 charactersRouter.post('/', async (req: AuthRequest, res: Response) => {
-  const { name, content_md, tags } = req.body;
+  const { name, content_md, tags, generateLayers = true, provider, model } = req.body as {
+    name?: string;
+    content_md?: string;
+    tags?: string[];
+    generateLayers?: boolean;
+    provider?: string;
+    model?: string;
+  };
   if (!name || !content_md) { res.status(400).json({ error: 'name and content_md required' }); return; }
+
+  let generatedVoiceCard: string | null = null;
+  let generatedChunks: ReferenceChunk[] = [];
+
+  if (generateLayers) {
+    const layers = await generateLayersForContent({
+      userId: req.userId!,
+      content: content_md,
+      provider,
+      model,
+    });
+    generatedVoiceCard = layers.voice_card_yaml || null;
+    generatedChunks = layers.reference_chunks;
+  }
 
   const { data, error } = await supabaseAdmin
     .from('characters')
-    .insert({ user_id: req.userId, name, content_md, tags: tags || [], is_global: false, is_stock: false })
+    .insert({
+      user_id: req.userId,
+      name,
+      content_md,
+      tags: tags || [],
+      voice_card_yaml: generatedVoiceCard,
+      reference_chunks: generatedChunks,
+      is_global: false,
+      is_stock: false,
+    })
     .select()
     .single();
 
@@ -266,15 +296,34 @@ charactersRouter.post('/:id/generate-layers', async (req: AuthRequest, res: Resp
 
 // PATCH /api/characters/:id
 charactersRouter.patch('/:id', async (req: AuthRequest, res: Response) => {
-  const { name, content_md, tags } = req.body;
+  const { name, content_md, tags, generateLayers = true, provider, model } = req.body as {
+    name?: string;
+    content_md?: string;
+    tags?: string[];
+    generateLayers?: boolean;
+    provider?: string;
+    model?: string;
+  };
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (typeof name === 'string') updates.name = name;
   if (typeof tags !== 'undefined') updates.tags = tags;
   if (typeof content_md === 'string') {
     updates.content_md = content_md;
-    updates.voice_card_yaml = null;
-    updates.reference_chunks = [];
+
+    if (generateLayers) {
+      const layers = await generateLayersForContent({
+        userId: req.userId!,
+        content: content_md,
+        provider,
+        model,
+      });
+      updates.voice_card_yaml = layers.voice_card_yaml || null;
+      updates.reference_chunks = layers.reference_chunks;
+    } else {
+      updates.voice_card_yaml = null;
+      updates.reference_chunks = [];
+    }
   }
 
   const { data, error } = await supabaseAdmin

@@ -27,19 +27,19 @@ export function useCharacters() {
 
   useEffect(() => { load(); }, [load]);
 
-  const create = async (name: string, content_md: string, tags: string[] = []) => {
+  const create = async (name: string, content_md: string, tags: string[] = [], options: { generateLayers?: boolean } = {}) => {
     const c = await apiFetch<Character>('/api/characters', {
       method: 'POST',
-      body: JSON.stringify({ name, content_md, tags }),
+      body: JSON.stringify({ name, content_md, tags, generateLayers: options.generateLayers ?? true }),
     });
     setCharacters((prev) => [...prev, c]);
     return c;
   };
 
-  const update = async (id: string, patch: Partial<Pick<Character, 'name' | 'content_md' | 'tags'>>) => {
+  const update = async (id: string, patch: Partial<Pick<Character, 'name' | 'content_md' | 'tags'>>, options: { generateLayers?: boolean } = {}) => {
     const c = await apiFetch<Character>(`/api/characters/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify(patch),
+      body: JSON.stringify({ ...patch, generateLayers: options.generateLayers ?? true }),
     });
     setCharacters((prev) => prev.map((x) => (x.id === id ? c : x)));
     return c;

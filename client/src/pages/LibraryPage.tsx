@@ -18,6 +18,8 @@ export function LibraryPage() {
   const [importingCharacter, setImportingCharacter] = useState(false);
   const [backfilling, setBackfilling] = useState(false);
   const [generatingCharacterId, setGeneratingCharacterId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const charactersState = useCharacters();
   const scenariosState = useScenarios();
@@ -53,9 +55,18 @@ export function LibraryPage() {
               className="btn btn-ghost"
               disabled={backfilling}
               onClick={async () => {
+                setActionError(null);
+                setActionMessage(null);
                 setBackfilling(true);
                 try {
-                  await charactersState.backfillLayers({ onlyMissing: true, limit: 25 });
+                  const result = await charactersState.backfillLayers({ onlyMissing: true, limit: 25 });
+                  if (result.failures.length > 0) {
+                    setActionError(`Converted ${result.converted} of ${result.processed}. First failure: ${result.failures[0]?.error || 'Unknown error'}`);
+                  } else {
+                    setActionMessage(result.processed === 0 ? 'No characters needed layers.' : `Converted ${result.converted} character${result.converted === 1 ? '' : 's'}.`);
+                  }
+                } catch (e) {
+                  setActionError((e as Error).message);
                 } finally {
                   setBackfilling(false);
                 }
@@ -69,6 +80,18 @@ export function LibraryPage() {
           </button>
         </div>
       </section>
+
+      {actionError && (
+        <div className="card" style={{ padding: 12, marginTop: 12, marginBottom: 12, borderColor: 'rgba(230, 57, 70, 0.35)' }}>
+          <p style={{ margin: 0, color: 'var(--danger)' }}>{actionError}</p>
+        </div>
+      )}
+
+      {actionMessage && !actionError && (
+        <div className="card" style={{ padding: 12, marginTop: 12, marginBottom: 12, borderColor: 'rgba(120, 182, 122, 0.3)' }}>
+          <p style={{ margin: 0, color: 'var(--success)' }}>{actionMessage}</p>
+        </div>
+      )}
 
       <div className={styles.tabs}>
         <button className={`btn ${tab === 'characters' ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setTab('characters')}>Characters</button>
@@ -98,9 +121,14 @@ export function LibraryPage() {
               key={character.id}
               character={character}
               onGenerateLayers={!character.is_global ? async () => {
+                setActionError(null);
+                setActionMessage(null);
                 setGeneratingCharacterId(character.id);
                 try {
                   await charactersState.generateLayers(character.id);
+                  setActionMessage(`Generated layers for ${character.name}.`);
+                } catch (e) {
+                  setActionError((e as Error).message);
                 } finally {
                   setGeneratingCharacterId(null);
                 }
@@ -132,8 +160,15 @@ export function LibraryPage() {
           initial={editingCharacter.id ? editingCharacter : null}
           onClose={() => setEditingCharacter(null)}
           onSave={async (payload) => {
-            if (editingCharacter.id) await charactersState.update(editingCharacter.id, payload);
-            else await charactersState.create(payload.name, payload.content_md, payload.tags);
+            setActionError(null);
+            setActionMessage(null);
+            if (editingCharacter.id) {
+              await charactersState.update(editingCharacter.id, payload, { generateLayers: true });
+              setActionMessage(`Saved ${payload.name} and regenerated layers.`);
+            } else {
+              await charactersState.create(payload.name, payload.content_md, payload.tags, { generateLayers: true });
+              setActionMessage(`Created ${payload.name} with fresh layers.`);
+            }
           }}
         />
       )}

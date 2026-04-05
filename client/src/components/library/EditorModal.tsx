@@ -15,9 +15,11 @@ export function EditorModal({ type, initial, onClose, onSave }: Props) {
   const [content, setContent] = useState(initial?.content_md || '');
   const [tags, setTags] = useState(initial?.tags?.join(', ') || '');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     setSaving(true);
+    setError(null);
     try {
       await onSave({
         name: name.trim(),
@@ -25,6 +27,8 @@ export function EditorModal({ type, initial, onClose, onSave }: Props) {
         tags: tags.split(',').map((x) => x.trim()).filter(Boolean),
       });
       onClose();
+    } catch (e) {
+      setError((e as Error).message);
     } finally {
       setSaving(false);
     }
@@ -43,6 +47,8 @@ export function EditorModal({ type, initial, onClose, onSave }: Props) {
 
         <div className={styles.layout}>
           <div className={styles.form}>
+            {error && <p className="text-danger" style={{ margin: 0 }}>{error}</p>}
+
             <label className={styles.label}>
               Name
               <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={`Enter ${type} name`} />
